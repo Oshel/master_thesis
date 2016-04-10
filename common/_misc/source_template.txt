@@ -1,0 +1,22 @@
+#include "main.h"
+
+// Local definitions
+// #define DEFINITION
+
+
+
+// Local variables declarations
+// uint8_t VariableName;
+
+
+
+// Functions declarations
+// void nameFunction(uint8_t variableName);
+
+
+
+/**	
+* @brief:	
+  *			
+  *			
+  */

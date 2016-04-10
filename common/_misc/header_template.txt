@@ -1,0 +1,20 @@
+#ifndef __NAME_H
+#define __NAME_H
+
+// Global typedefs
+
+
+
+// Global variables declarations
+
+
+
+// Global functions declarations
+
+
+
+// Global definitions
+
+
+
+#endif

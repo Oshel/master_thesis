@@ -1,0 +1,28 @@
+/*
+ * main.h
+ *
+ * Created: RRRR-MM-DD HH:MM:SS
+ *  Author: Author
+ */ 
+
+
+#ifndef NAME_H_
+#define NAME_H_
+
+// Global typedefs
+
+
+
+// Global variables declarations
+
+
+
+// Global functions declarations
+
+
+
+// Global definitions
+
+
+
+#endif /* MAIN_H_ */

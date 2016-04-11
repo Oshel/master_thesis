@@ -78,4 +78,26 @@ typedef enum {
 	macSrcAddModeAdd64Bit						= 3
 } eMacSrcAddMode;
 
+typedef struct {
+	eMacFrameType		macFrameType;
+	eMacSecurity		macSecurity;
+	eMacFramePending	macFramePending;
+	eMacAckRequest		macAckRequest;
+	eMacIntraPan		macIntraPan;
+	eMacDestAddMode		macDestAddMode;
+	eMacFrameVersion	macFrameVersion;
+	eMacSrcAddMode		macSrcAddMode;
+} tMacFcf;
+
+typedef struct {
+	tMacFcf				macFcf;
+	uint16_t			macSequenceNumber;
+	uint16_t			macDestPan;
+	uint16_t			macDestAdd;
+	uint16_t			macSrcPan;
+	uint16_t			macSrcAdd;
+	uint64_t			macAuxSecurityHdr;
+	uint16_t			macCrc;
+} tMacMessage;
+
 #endif /* MACLAYER_H_ */

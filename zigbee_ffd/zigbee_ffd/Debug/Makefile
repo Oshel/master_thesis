@@ -44,7 +44,8 @@ C_SRCS +=  \
 ../_src/appLayer.c \
 ../_src/macLayer.c \
 ../_src/nwkLayer.c \
-../_src/trxInterrupts.c
+../_src/trxInterrupts.c \
+../_src/trxStateTransitions.c
 
 
 PREPROCESSING_SRCS += 
@@ -58,28 +59,32 @@ main.o \
 _src/appLayer.o \
 _src/macLayer.o \
 _src/nwkLayer.o \
-_src/trxInterrupts.o
+_src/trxInterrupts.o \
+_src/trxStateTransitions.o
 
 OBJS_AS_ARGS +=  \
 main.o \
 _src/appLayer.o \
 _src/macLayer.o \
 _src/nwkLayer.o \
-_src/trxInterrupts.o
+_src/trxInterrupts.o \
+_src/trxStateTransitions.o
 
 C_DEPS +=  \
 main.d \
 _src/appLayer.d \
 _src/macLayer.d \
 _src/nwkLayer.d \
-_src/trxInterrupts.d
+_src/trxInterrupts.d \
+_src/trxStateTransitions.d
 
 C_DEPS_AS_ARGS +=  \
 main.d \
 _src/appLayer.d \
 _src/macLayer.d \
 _src/nwkLayer.d \
-_src/trxInterrupts.d
+_src/trxInterrupts.d \
+_src/trxStateTransitions.d
 
 OUTPUT_FILE_PATH +=zigbee_ffd.elf
 
@@ -95,6 +100,8 @@ LINKER_SCRIPT_DEP+=
 
 
 # AVR32/GNU C Compiler
+
+
 
 
 

@@ -13,63 +13,49 @@
 #include <avr/interrupt.h>
 
 #include <macLayer.h>
+#include <trxStateTransitions.h>
 
 typedef enum {
-	false				= 0,
-	true				= 1
+	false							= 0,
+	true							= 1
 } bool;
 
 typedef enum {
-	trxStateReset		= 0,
-	trxStateTrxOff		= 1,
-	trxStateSleep		= 2,
-	trxStateRxOn		= 3,
-	trxStatePllOn		= 4,
-	trxStateBusyRx		= 5,
-	trxStateBusyTx		= 6,
-	trxStateTxAretOn	= 7,
-	trxStateBusyTxAret	= 8,
-	trxStateRxAackOn	= 9,
-	trxStateBusyRxAack	= 10
-} eTrxState;
-
-typedef enum {
-	trxPowerLevelP35dBm		= 0,
-	trxPowerLevelP33dBm		= 1,
-	trxPowerLevelP28dBm		= 2,
-	trxPowerLevelP23dBm		= 3,
-	trxPowerLevelP18dBm		= 4,
-	trxPowerLevelP12dBm		= 5,
-	trxPowerLevelP05dBm		= 6,
-	trxPowerLevelM05dBm		= 7,
-	trxPowerLevelM15dBm		= 8,
-	trxPowerLevelM25dBm		= 9,
-	trxPowerLevelM35dBm		= 10,
-	trxPowerLevelM45dBm		= 11,
-	trxPowerLevelM65dBm		= 12,
-	trxPowerLevelM85dBm		= 13,
-	trxPowerLevelM115dBm	= 14,
-	trxPowerLevelM165dBm	= 15,
-
+	trxPowerLevelP35dBm				= 0,
+	trxPowerLevelP33dBm				= 1,
+	trxPowerLevelP28dBm				= 2,
+	trxPowerLevelP23dBm				= 3,
+	trxPowerLevelP18dBm				= 4,
+	trxPowerLevelP12dBm				= 5,
+	trxPowerLevelP05dBm				= 6,
+	trxPowerLevelM05dBm				= 7,
+	trxPowerLevelM15dBm				= 8,
+	trxPowerLevelM25dBm				= 9,
+	trxPowerLevelM35dBm				= 10,
+	trxPowerLevelM45dBm				= 11,
+	trxPowerLevelM65dBm				= 12,
+	trxPowerLevelM85dBm				= 13,
+	trxPowerLevelM115dBm			= 14,
+	trxPowerLevelM165dBm			= 15,
 } eTrxPowerLevel;
 
 typedef enum {
-	trxChannel2405MHz		= 11,
-	trxChannel2410MHz		= 12,
-	trxChannel2415MHz		= 13,
-	trxChannel2420MHz		= 14,
-	trxChannel2425MHz		= 15,
-	trxChannel2430MHz		= 16,
-	trxChannel2435MHz		= 17,
-	trxChannel2440MHz		= 18,
-	trxChannel2445MHz		= 19,
-	trxChannel2450MHz		= 20,
-	trxChannel2455MHz		= 21,
-	trxChannel2460MHz		= 22,
-	trxChannel2465MHz		= 23,
-	trxChannel2470MHz		= 24,
-	trxChannel2475MHz		= 25,
-	trxChannel2480MHz		= 26
+	trxChannel2405MHz				= 11,
+	trxChannel2410MHz				= 12,
+	trxChannel2415MHz				= 13,
+	trxChannel2420MHz				= 14,
+	trxChannel2425MHz				= 15,
+	trxChannel2430MHz				= 16,
+	trxChannel2435MHz				= 17,
+	trxChannel2440MHz				= 18,
+	trxChannel2445MHz				= 19,
+	trxChannel2450MHz				= 20,
+	trxChannel2455MHz				= 21,
+	trxChannel2460MHz				= 22,
+	trxChannel2465MHz				= 23,
+	trxChannel2470MHz				= 24,
+	trxChannel2475MHz				= 25,
+	trxChannel2480MHz				= 26
 } eTrxChannel;
 
 typedef enum {
@@ -92,10 +78,10 @@ typedef enum {
 } eTrxReceiverSensivity;
 
 typedef enum {
-	trxCcaModeCsOrEd		= 0,
-	trxCcaModeEd			= 1,
-	trxCcaModeCs			= 2,
-	trxCcaModeCsAndEd		= 3
+	trxCcaModeCsOrEd				= 0,
+	trxCcaModeEd					= 1,
+	trxCcaModeCs					= 2,
+	trxCcaModeCsAndEd				= 3
 } eTrxCcaMode;
 
 typedef enum {
@@ -147,25 +133,18 @@ typedef enum {
 } eTrxBackOffExponent;
 
 typedef struct {
-	eMacFrameType		macFrameType;
-	eMacSecurity		macSecurity;
-	eMacFramePending	macFramePending;
-	eMacAckRequest		macAckRequest;
-	eMacIntraPan		macIntraPan;
-	eMacDestAddMode		macDestAddMode;
-	eMacFrameVersion	macFrameVersion;
-	eMacSrcAddMode		macSrcAddMode;
-} tMacFcf;
+	eTrxState						trxStateCurrent;
+	eTrxState						trxStatePrevious;	
+} tTrxState;
 
 typedef struct {
-	tMacFcf				macFcf;
-	uint16_t			macSequenceNumber;
-	uint16_t			macDestPan;
-	uint16_t			macDestAdd;
-	uint16_t			macSrcPan;
-	uint16_t			macSrcAdd;
-	uint64_t			macAuxSecurityHdr;
-	uint16_t			macCrc;
-} tMacMessage;
+	tTrxState						state;
+} tTrx;
+
+typedef struct {
+	tTrx							trx;
+} tSystem;
+
+extern tSystem System;
 
 #endif /* MAIN_H_ */

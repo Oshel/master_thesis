@@ -7,6 +7,8 @@
 
 #include <main.h>
 
+tSystem System;
+
 ISR(BADISR_vect)
 {
 	// Handling unexpected interrupt (interrupt is enabled and no handler is installed)

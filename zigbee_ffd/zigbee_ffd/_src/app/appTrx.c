@@ -1,11 +1,11 @@
 /*
- * appLayer.c
+ * appTrx.c
  *
  * Created: 2016-04-10 17:19:26
  *  Author: Maciek
  */ 
  
-#include <main.h>
+#include "main.h"
 
 // Local definitions
 // #define DEFINITION
@@ -91,14 +91,92 @@ void fAppTrxInit(void)
 
 	buffer = IRQ_STATUS;						// If an interrupt is enabled it is recommended to read the interrupt status register IRQ_STATUS first to clear the history.
 
-	IRQ_MASK |= PLL_LOCK_EN |					// Interrupt enable
-				PLL_UNLOCK_EN |
-				RX_START_EN |
-				RX_END_EN |
-				CCA_ED_DONE_EN |
-				AMI_EN |
-				TX_END_EN |
-				AWAKE_EN;
+	IRQ_MASK |= (1 << PLL_LOCK_EN) |			// Interrupt enable
+				(1 << PLL_UNLOCK_EN) |
+				(1 << RX_START_EN) |
+				(1 << RX_END_EN) |
+				(1 << CCA_ED_DONE_EN) |
+				(1 << AMI_EN) |
+				(1 << TX_END_EN) |
+				(1 << AWAKE_EN);
+}
+
+void fAppTrxMessageReceive (void)
+{
+
+}
+
+/**	
+* @brief: 	
+  @param: 
+  *			
+  *			
+  */
+
+void fAppTrxMessageSend (tMacMessage* macMessage,
+						uint8_t* macMsdu,
+						uint8_t macMsduLength)
+{
+	uint8_t sendBuffer [127];
+	uint8_t byteCounter = 0;
+	
+	fMacMessageFcfPrepare(&sendBuffer[byteCounter],
+						  macMessage->macFcf.macFrameType,
+						  macMessage->macFcf.macSecurity,
+						  macMessage->macFcf.macFramePending,
+						  macMessage->macFcf.macAckRequest,
+						  macMessage->macFcf.macIntraPan,
+						  macMessage->macFcf.macDestAddMode,
+						  macMessage->macFcf.macFrameVersion,
+						  macMessage->macFcf.macSrcAddMode);
+
+	byteCounter += 2;
+
+	fMacMessageSequenceNumberPrepare(&sendBuffer[byteCounter],
+									 macMessage->macSequenceNumber);
+	
+	byteCounter++;
+
+	fMacMessageAddressingFieldsPrepare(&sendBuffer[byteCounter],
+									   macMessage->macDestPan,
+									   macMessage->macDestAdd,
+									   macMessage->macSrcPan,
+									   macMessage->macSrcAdd);
+	
+	byteCounter += 8;
+
+	if (macMessage->macFcf.macSecurity == macSecurityEnabled)
+	{
+		fMacMessageAuxiliarySecurityHeaderPrepare(&sendBuffer[byteCounter],
+												  macMessage->macAuxSecurityHdr);
+
+		byteCounter += 5;
+	}
+
+	memcpy(&sendBuffer[byteCounter], macMsdu, macMsduLength);
+
+	byteCounter += macMsduLength;
+
+	// Wait for RX/TX states finishes
+	do 
+	{
+		// Check current state
+		fAppTrxStateCheck();
+	} while (System.trx.state.trxStateCurrent == trxStateBusyRx ||
+			 System.trx.state.trxStateCurrent == trxStateBusyRxAack ||
+			 System.trx.state.trxStateCurrent == trxStateBusyTx ||
+			 System.trx.state.trxStateCurrent == trxStateBusyTxAret);
+
+	// Change state to PllOn to prevent from receiving new frames
+	fAppTrxStateTransition(System.trx.state.trxStateCurrent, trxStatePllOn, false, false);
+
+	// Load frame length
+	TRXFBST = byteCounter;
+	// Load the frame
+	memcpy((void *)(&TRXFBST+1), sendBuffer, byteCounter);
+
+	// Change state to BusyTx to send the frame
+	fAppTrxStateTransition(System.trx.state.trxStateCurrent, trxStateBusyTx, false, false);
 }
 
 /**	
@@ -146,9 +224,9 @@ void fAppTrxAesEncrypt(uint8_t* aesBuffer)
 {
 	fAppTrxAesSetKey(TRX_AES_KEY);
 	fAppTrxAesWriteBuffer(aesBuffer);
-	AES_CTRL &= ~(AES_DIR);
-	AES_CTRL |= AES_REQUEST;
-	while ((AES_STATUS & AES_DONE) == false);		// 24 us
+	AES_CTRL &= ~(1 <<AES_DIR);
+	AES_CTRL |= (1 << AES_REQUEST);
+	while ((AES_STATUS & (1 << AES_DONE)) == false);		// 24 us
 	fAppTrxAesReadBuffer(aesBuffer);
 }
 
@@ -163,9 +241,9 @@ void fAppTrxAesDecrypt(uint8_t* aesBuffer)
 {
 	fAppTrxAesSetKey(TRX_AES_KEY);
 	fAppTrxAesWriteBuffer(aesBuffer);
-	AES_CTRL |= AES_DIR;
-	AES_CTRL |= AES_REQUEST;
-	while ((AES_STATUS & AES_DONE) == false);		// 24 us
+	AES_CTRL |= (1 << AES_DIR);
+	AES_CTRL |= (1 << AES_REQUEST);
+	while ((AES_STATUS & (1 << AES_DONE)) == false);		// 24 us
 	fAppTrxAesReadBuffer(aesBuffer);
 }
 
@@ -328,8 +406,8 @@ void fAppTrxSetAddShort (uint16_t addShort)
 
 void fAppTrxDoCalibrationPllDelayCell (void)
 {
-	PLL_DCU |= PLL_DCU_START;
-	while (PLL_DCU & PLL_DCU_START);	// At most 6 us
+	PLL_DCU |= (1 << PLL_DCU_START);
+	while (PLL_DCU & (1 << PLL_DCU_START));	// At most 6 us
 }
 
 /**	
@@ -341,8 +419,8 @@ void fAppTrxDoCalibrationPllDelayCell (void)
 
 void fAppTrxDoCalibrationPllCenterFreq (void)
 {
-	PLL_CF |= PLL_CF_START;
-	while (PLL_CF & PLL_CF_START);		// Typical 35 us
+	PLL_CF |= (1 << PLL_CF_START);
+	while (PLL_CF & (1 << PLL_CF_START));		// Typical 35 us
 }
 
 /**	
@@ -354,8 +432,8 @@ void fAppTrxDoCalibrationPllCenterFreq (void)
 
 void fAppTrxDoCalibrationFilterNetwork (void)
 {
-	FTN_CTRL |= FTN_START;
-	while (FTN_CTRL & FTN_START);		// At most 25 us
+	FTN_CTRL |= (1 << FTN_START);
+	while (FTN_CTRL & (1 << FTN_START));		// At most 25 us
 }
 
 /**	
@@ -393,10 +471,10 @@ void fAppTrxSetSuspendReceiving (bool setClearSuspend)
 
 	if (setClearSuspend == true)
 	{
-		RX_SYN |= RX_PDT_DIS;
+		RX_SYN |= (1 << RX_PDT_DIS);
 	} else if (setClearSuspend == false)
 	{
-		RX_SYN &= ~RX_PDT_DIS;
+		RX_SYN &= ~(1 << RX_PDT_DIS);
 	}
 }
 
@@ -414,10 +492,10 @@ void fAppTrxSetRxBufferLatchSetClear (bool setClearLatch)
 
 	if (setClearLatch == true)
 	{
-		TRX_CTRL_2 |= RX_SAFE_MODE;
+		TRX_CTRL_2 |= (1 << RX_SAFE_MODE);
 	} else if (setClearLatch == false)
 	{
-		TRX_CTRL_2 &= ~RX_SAFE_MODE;
+		TRX_CTRL_2 &= ~(1 << RX_SAFE_MODE);
 	}
 }
 

@@ -1,12 +1,13 @@
 /*
- * trxTransitions.c
+ * trxStateTransitions.c
  *
  * Created: 2016-04-11 12:12:45
  *  Author: Maciek
  */ 
 
 #include <main.h>
- 
+
+eTrxState fAppTrxStateCheck (void);
 bool fAppTrxStateTransition (eTrxState fromState, eTrxState toState, bool forceTrxOff, bool forcePllOn);
 
 void fAppTrxStateTransitionFromResetToTrxOff(void);
@@ -35,6 +36,24 @@ void fAppTrxStateTransitionFromTxAaretOnToPllOn (bool force);
 void fAppTrxStateTransitionFromTxAaretOnToBusyTxAret (void);
 void fAppTrxStateTransitionFromTxAaretOnToTrxOff (bool force);
 
+/**	
+* @brief: 	
+  @param: 
+  *			
+  *			
+  */
+
+eTrxState fAppTrxStateCheck (void)
+{
+	eTrxState actualState;
+
+	actualState = (eTrxState)(TRX_STATUS & 0x1F);
+
+	System.trx.state.trxStatePrevious = System.trx.state.trxStateCurrent;
+	System.trx.state.trxStateCurrent = actualState;
+
+	return actualState;
+}
 
 /**	
 * @brief: 	
@@ -81,7 +100,7 @@ bool fAppTrxStateTransition (eTrxState fromState, eTrxState toState, bool forceT
 					break;
 				case trxStateBusyTx:
 					fAppTrxStateTransitionFromSleepToTrxOff();
-					fAppTrxStateTransitionFromTrxOffToPllOn();
+					fAppTrxStateTransitionFromTrxOffToPllOn(forcePllOn);
 					fAppTrxStateTransitionFromPllOnToBusyTx();
 					break;
 				case trxStateBusyTxAret:
@@ -112,7 +131,7 @@ bool fAppTrxStateTransition (eTrxState fromState, eTrxState toState, bool forceT
 					fAppTrxStateTransitionFromTrxOffToTxAaretOn();
 					break;
 				case trxStateBusyTx:
-					fAppTrxStateTransitionFromTrxOffToPllOn();
+					fAppTrxStateTransitionFromTrxOffToPllOn(forcePllOn);
 					fAppTrxStateTransitionFromPllOnToBusyTx();
 					break;
 				case trxStateBusyTxAret:
@@ -145,7 +164,7 @@ bool fAppTrxStateTransition (eTrxState fromState, eTrxState toState, bool forceT
 					fAppTrxStateTransitionFromTrxOffToSleep();
 					break;
 				case trxStateBusyTx:
-					fAppTrxStateTransitionFromRxOnToPllOn();
+					fAppTrxStateTransitionFromRxOnToPllOn(forcePllOn);
 					fAppTrxStateTransitionFromPllOnToBusyTx();
 					break;
 				case trxStateBusyTxAret:
@@ -259,7 +278,9 @@ bool fAppTrxStateTransition (eTrxState fromState, eTrxState toState, bool forceT
 
 void fAppTrxStateTransitionFromResetToTrxOff(void)
 {
-	TRXPR &= ~TRXRST;
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
+
+	TRXPR &= ~(1 << TRXRST);
 
 	// Entering  the  TRX_OFF  state  from  radio  transceiver  SLEEP,  or  RESET  state  is
 	// indicated by the TRX24_AWAKE interrupt.  
@@ -267,8 +288,6 @@ void fAppTrxStateTransitionFromResetToTrxOff(void)
 	// If TRX_STATUS = 0x1F (STATE_TRANSITION_IN_PROGRESS) the radio transceiver
 	// is  on  a  state  transition.  Do  not  try  to  initiate  a  further  state  change  while  the  radio
 	// transceiver is in STATE_TRANSITION_IN_PROGRESS. 
-
-	while (TRX_STATUS == 0x1F);
 	
 	System.trx.state.trxStatePrevious = System.trx.state.trxStateCurrent;
 	System.trx.state.trxStateCurrent = trxStateTrxOff;
@@ -283,13 +302,13 @@ void fAppTrxStateTransitionFromResetToTrxOff(void)
 
 void fAppTrxStateTransitionFromTrxOffToSleep (void)
 {
-	TRXPR |= SLPTR;
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
+
+	TRXPR |= (1 << SLPTR);
 
 	// If TRX_STATUS = 0x1F (STATE_TRANSITION_IN_PROGRESS) the radio transceiver
 	// is  on  a  state  transition.  Do  not  try  to  initiate  a  further  state  change  while  the  radio
 	// transceiver is in STATE_TRANSITION_IN_PROGRESS.
-
-	while (TRX_STATUS == 0x1F);
 	
 	System.trx.state.trxStatePrevious = System.trx.state.trxStateCurrent;
 	System.trx.state.trxStateCurrent = trxStateSleep;
@@ -304,6 +323,9 @@ void fAppTrxStateTransitionFromTrxOffToSleep (void)
 
 void fAppTrxStateTransitionFromTrxOffToRxOn (void)
 {
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
+	TRX_STATE &= ~0x1F;
+
 	TRX_STATE |= CMD_RX_ON;
 
 	// During  RX_ON  state  the  receiver  listens  for  incoming  frames.  After  detecting  a  valid
@@ -312,8 +334,6 @@ void fAppTrxStateTransitionFromTrxOffToRxOn (void)
 	// If TRX_STATUS = 0x1F (STATE_TRANSITION_IN_PROGRESS) the radio transceiver
 	// is  on  a  state  transition.  Do  not  try  to  initiate  a  further  state  change  while  the  radio
 	// transceiver is in STATE_TRANSITION_IN_PROGRESS.
-
-	while (TRX_STATUS == 0x1F);
 	
 	System.trx.state.trxStatePrevious = System.trx.state.trxStateCurrent;
 	System.trx.state.trxStateCurrent = trxStateRxOn;
@@ -328,6 +348,9 @@ void fAppTrxStateTransitionFromTrxOffToRxOn (void)
 
 void fAppTrxStateTransitionFromTrxOffToRxAackOn (void)
 {
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
+	TRX_STATE &= ~0x1F;
+
 	TRX_STATE |= CMD_RX_AACK_ON;
 
 	// During  RX_ON  state  the  receiver  listens  for  incoming  frames.  After  detecting  a  valid
@@ -336,8 +359,6 @@ void fAppTrxStateTransitionFromTrxOffToRxAackOn (void)
 	// If TRX_STATUS = 0x1F (STATE_TRANSITION_IN_PROGRESS) the radio transceiver
 	// is  on  a  state  transition.  Do  not  try  to  initiate  a  further  state  change  while  the  radio
 	// transceiver is in STATE_TRANSITION_IN_PROGRESS.
-
-	while (TRX_STATUS == 0x1F);
 	
 	System.trx.state.trxStatePrevious = System.trx.state.trxStateCurrent;
 	System.trx.state.trxStateCurrent = trxStateRxAackOn;
@@ -352,6 +373,9 @@ void fAppTrxStateTransitionFromTrxOffToRxAackOn (void)
 
 void fAppTrxStateTransitionFromTrxOffToPllOn (bool force)
 {
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
+	TRX_STATE &= ~0x1F;
+
 	if (force == true)
 	{
 		TRX_STATE |= CMD_FORCE_PLL_ON;
@@ -363,8 +387,6 @@ void fAppTrxStateTransitionFromTrxOffToPllOn (bool force)
 	// If TRX_STATUS = 0x1F (STATE_TRANSITION_IN_PROGRESS) the radio transceiver
 	// is  on  a  state  transition.  Do  not  try  to  initiate  a  further  state  change  while  the  radio
 	// transceiver is in STATE_TRANSITION_IN_PROGRESS.
-
-	while (TRX_STATUS == 0x1F);
 	
 	System.trx.state.trxStatePrevious = System.trx.state.trxStateCurrent;
 	System.trx.state.trxStateCurrent = trxStatePllOn;
@@ -379,13 +401,14 @@ void fAppTrxStateTransitionFromTrxOffToPllOn (bool force)
 
 void fAppTrxStateTransitionFromTrxOffToTxAaretOn (void)
 {
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
+	TRX_STATE &= ~0x1F;
+
 	TRX_STATE |= CMD_TX_ARET_ON;
 
 	// If TRX_STATUS = 0x1F (STATE_TRANSITION_IN_PROGRESS) the radio transceiver
 	// is  on  a  state  transition.  Do  not  try  to  initiate  a  further  state  change  while  the  radio
 	// transceiver is in STATE_TRANSITION_IN_PROGRESS.
-
-	while (TRX_STATUS == 0x1F);
 	
 	System.trx.state.trxStatePrevious = System.trx.state.trxStateCurrent;
 	System.trx.state.trxStateCurrent = trxStateTxAretOn;
@@ -400,7 +423,9 @@ void fAppTrxStateTransitionFromTrxOffToTxAaretOn (void)
 
 void fAppTrxStateTransitionFromSleepToTrxOff (void)
 {
-	TRXPR &= ~SLPTR;
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
+
+	TRXPR &= ~(1 << SLPTR);
 
 	// Entering  the  TRX_OFF  state  from  radio  transceiver  SLEEP,  or  RESET  state  is
 	// indicated by the TRX24_AWAKE interrupt.
@@ -408,8 +433,6 @@ void fAppTrxStateTransitionFromSleepToTrxOff (void)
 	// If TRX_STATUS = 0x1F (STATE_TRANSITION_IN_PROGRESS) the radio transceiver
 	// is  on  a  state  transition.  Do  not  try  to  initiate  a  further  state  change  while  the  radio
 	// transceiver is in STATE_TRANSITION_IN_PROGRESS.
-
-	while (TRX_STATUS == 0x1F);
 	
 	System.trx.state.trxStatePrevious = System.trx.state.trxStateCurrent;
 	System.trx.state.trxStateCurrent = trxStateTrxOff;
@@ -424,6 +447,9 @@ void fAppTrxStateTransitionFromSleepToTrxOff (void)
 
 void fAppTrxStateTransitionFromPllOnToTrxOff (bool force)
 {
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
+	TRX_STATE &= ~0x1F;
+
 	if (force == true)
 	{
 		TRX_STATE |= CMD_FORCE_TRX_OFF;
@@ -435,8 +461,6 @@ void fAppTrxStateTransitionFromPllOnToTrxOff (bool force)
 	// If TRX_STATUS = 0x1F (STATE_TRANSITION_IN_PROGRESS) the radio transceiver
 	// is  on  a  state  transition.  Do  not  try  to  initiate  a  further  state  change  while  the  radio
 	// transceiver is in STATE_TRANSITION_IN_PROGRESS.
-
-	while (TRX_STATUS == 0x1F);
 
 	System.trx.state.trxStatePrevious = System.trx.state.trxStateCurrent;
 	System.trx.state.trxStateCurrent = trxStateTrxOff;
@@ -451,6 +475,9 @@ void fAppTrxStateTransitionFromPllOnToTrxOff (bool force)
 
 void fAppTrxStateTransitionFromPllOnToRxOn (void)
 {
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
+	TRX_STATE &= ~0x1F;
+
 	TRX_STATE |= CMD_RX_ON;
 
 	// During  RX_ON  state  the  receiver  listens  for  incoming  frames.  After  detecting  a  valid
@@ -459,8 +486,6 @@ void fAppTrxStateTransitionFromPllOnToRxOn (void)
 	// If TRX_STATUS = 0x1F (STATE_TRANSITION_IN_PROGRESS) the radio transceiver
 	// is  on  a  state  transition.  Do  not  try  to  initiate  a  further  state  change  while  the  radio
 	// transceiver is in STATE_TRANSITION_IN_PROGRESS.
-
-	while (TRX_STATUS == 0x1F);
 
 	System.trx.state.trxStatePrevious = System.trx.state.trxStateCurrent;
 	System.trx.state.trxStateCurrent = trxStateRxOn;
@@ -475,13 +500,14 @@ void fAppTrxStateTransitionFromPllOnToRxOn (void)
 
 void fAppTrxStateTransitionFromPllOnToBusyTx (void)
 {
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
+	TRX_STATE &= ~0x1F;
+
 	TRX_STATE |= CMD_TX_START;
 
 	// If TRX_STATUS = 0x1F (STATE_TRANSITION_IN_PROGRESS) the radio transceiver
 	// is  on  a  state  transition.  Do  not  try  to  initiate  a  further  state  change  while  the  radio
 	// transceiver is in STATE_TRANSITION_IN_PROGRESS.
-
-	while (TRX_STATUS == 0x1F);
 
 	System.trx.state.trxStatePrevious = System.trx.state.trxStateCurrent;
 	System.trx.state.trxStateCurrent = trxStateBusyTx;
@@ -496,13 +522,14 @@ void fAppTrxStateTransitionFromPllOnToBusyTx (void)
 
 void fAppTrxStateTransitionFromPllOnToTxAretOn (void)
 {
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
+	TRX_STATE &= ~0x1F;
+
 	TRX_STATE |= CMD_TX_ARET_ON;
 
 	// If TRX_STATUS = 0x1F (STATE_TRANSITION_IN_PROGRESS) the radio transceiver
 	// is  on  a  state  transition.  Do  not  try  to  initiate  a  further  state  change  while  the  radio
 	// transceiver is in STATE_TRANSITION_IN_PROGRESS.
-
-	while (TRX_STATUS == 0x1F);
 
 	System.trx.state.trxStatePrevious = System.trx.state.trxStateCurrent;
 	System.trx.state.trxStateCurrent = trxStateTxAretOn;
@@ -517,6 +544,9 @@ void fAppTrxStateTransitionFromPllOnToTxAretOn (void)
 
 void fAppTrxStateTransitionFromPllOnToRxAackOn (void)
 {
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
+	TRX_STATE &= ~0x1F;
+
 	TRX_STATE |= CMD_RX_AACK_ON;
 
 	// During  RX_ON  state  the  receiver  listens  for  incoming  frames.  After  detecting  a  valid
@@ -525,8 +555,6 @@ void fAppTrxStateTransitionFromPllOnToRxAackOn (void)
 	// If TRX_STATUS = 0x1F (STATE_TRANSITION_IN_PROGRESS) the radio transceiver
 	// is  on  a  state  transition.  Do  not  try  to  initiate  a  further  state  change  while  the  radio
 	// transceiver is in STATE_TRANSITION_IN_PROGRESS.
-
-	while (TRX_STATUS == 0x1F);
 
 	System.trx.state.trxStatePrevious = System.trx.state.trxStateCurrent;
 	System.trx.state.trxStateCurrent = trxStateRxAackOn;
@@ -541,6 +569,9 @@ void fAppTrxStateTransitionFromPllOnToRxAackOn (void)
 
 void fAppTrxStateTransitionFromRxOnToTrxOff (bool force)
 {
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
+	TRX_STATE &= ~0x1F;
+
 	if (force == true)
 	{
 		TRX_STATE |= CMD_FORCE_TRX_OFF;
@@ -552,8 +583,6 @@ void fAppTrxStateTransitionFromRxOnToTrxOff (bool force)
 	// If TRX_STATUS = 0x1F (STATE_TRANSITION_IN_PROGRESS) the radio transceiver
 	// is  on  a  state  transition.  Do  not  try  to  initiate  a  further  state  change  while  the  radio
 	// transceiver is in STATE_TRANSITION_IN_PROGRESS.
-
-	while (TRX_STATUS == 0x1F);
 
 	System.trx.state.trxStatePrevious = System.trx.state.trxStateCurrent;
 	System.trx.state.trxStateCurrent = trxStateTrxOff;
@@ -568,6 +597,9 @@ void fAppTrxStateTransitionFromRxOnToTrxOff (bool force)
 
 void fAppTrxStateTransitionFromRxOnToPllOn (bool force)
 {
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
+	TRX_STATE &= ~0x1F;
+
 	if (force == true)
 	{
 		TRX_STATE |= CMD_FORCE_PLL_ON;
@@ -579,8 +611,6 @@ void fAppTrxStateTransitionFromRxOnToPllOn (bool force)
 	// If TRX_STATUS = 0x1F (STATE_TRANSITION_IN_PROGRESS) the radio transceiver
 	// is  on  a  state  transition.  Do  not  try  to  initiate  a  further  state  change  while  the  radio
 	// transceiver is in STATE_TRANSITION_IN_PROGRESS.
-
-	while (TRX_STATUS == 0x1F);
 
 	System.trx.state.trxStatePrevious = System.trx.state.trxStateCurrent;
 	System.trx.state.trxStateCurrent = trxStatePllOn;
@@ -595,6 +625,9 @@ void fAppTrxStateTransitionFromRxOnToPllOn (bool force)
 
 void fAppTrxStateTransitionFromRxAackOnToTrxOff (bool force)
 {
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
+	TRX_STATE &= ~0x1F;
+
 	if (force == true)
 	{
 		TRX_STATE |= CMD_FORCE_TRX_OFF;
@@ -606,8 +639,6 @@ void fAppTrxStateTransitionFromRxAackOnToTrxOff (bool force)
 	// If TRX_STATUS = 0x1F (STATE_TRANSITION_IN_PROGRESS) the radio transceiver
 	// is  on  a  state  transition.  Do  not  try  to  initiate  a  further  state  change  while  the  radio
 	// transceiver is in STATE_TRANSITION_IN_PROGRESS.
-
-	while (TRX_STATUS == 0x1F);
 
 	System.trx.state.trxStatePrevious = System.trx.state.trxStateCurrent;
 	System.trx.state.trxStateCurrent = trxStateTrxOff;
@@ -622,6 +653,9 @@ void fAppTrxStateTransitionFromRxAackOnToTrxOff (bool force)
 
 void fAppTrxStateTransitionFromRxAackOnToPllOn (bool force)
 {
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
+	TRX_STATE &= ~0x1F;
+
 	if (force == true)
 	{
 		TRX_STATE |= CMD_FORCE_PLL_ON;
@@ -633,8 +667,6 @@ void fAppTrxStateTransitionFromRxAackOnToPllOn (bool force)
 	// If TRX_STATUS = 0x1F (STATE_TRANSITION_IN_PROGRESS) the radio transceiver
 	// is  on  a  state  transition.  Do  not  try  to  initiate  a  further  state  change  while  the  radio
 	// transceiver is in STATE_TRANSITION_IN_PROGRESS.
-
-	while (TRX_STATUS == 0x1F);
 
 	System.trx.state.trxStatePrevious = System.trx.state.trxStateCurrent;
 	System.trx.state.trxStateCurrent = trxStatePllOn;
@@ -649,6 +681,9 @@ void fAppTrxStateTransitionFromRxAackOnToPllOn (bool force)
 
 void fAppTrxStateTransitionFromTxAaretOnToPllOn (bool force)
 {
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
+	TRX_STATE &= ~0x1F;
+
 	if (force == true)
 	{
 		TRX_STATE |= CMD_FORCE_PLL_ON;
@@ -660,8 +695,6 @@ void fAppTrxStateTransitionFromTxAaretOnToPllOn (bool force)
 	// If TRX_STATUS = 0x1F (STATE_TRANSITION_IN_PROGRESS) the radio transceiver
 	// is  on  a  state  transition.  Do  not  try  to  initiate  a  further  state  change  while  the  radio
 	// transceiver is in STATE_TRANSITION_IN_PROGRESS.
-
-	while (TRX_STATUS == 0x1F);
 
 	System.trx.state.trxStatePrevious = System.trx.state.trxStateCurrent;
 	System.trx.state.trxStateCurrent = trxStatePllOn;
@@ -676,13 +709,14 @@ void fAppTrxStateTransitionFromTxAaretOnToPllOn (bool force)
 
 void fAppTrxStateTransitionFromTxAaretOnToBusyTxAret (void)
 {
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
+	TRX_STATE &= ~0x1F;
+
 	TRX_STATE |= CMD_TX_START;
 
 	// If TRX_STATUS = 0x1F (STATE_TRANSITION_IN_PROGRESS) the radio transceiver
 	// is  on  a  state  transition.  Do  not  try  to  initiate  a  further  state  change  while  the  radio
 	// transceiver is in STATE_TRANSITION_IN_PROGRESS.
-
-	while (TRX_STATUS == 0x1F);
 
 	System.trx.state.trxStatePrevious = System.trx.state.trxStateCurrent;
 	System.trx.state.trxStateCurrent = trxStateBusyTxAret;
@@ -697,6 +731,9 @@ void fAppTrxStateTransitionFromTxAaretOnToBusyTxAret (void)
 
 void fAppTrxStateTransitionFromTxAaretOnToTrxOff (bool force)
 {
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
+	TRX_STATE &= ~0x1F;
+
 	if (force == true)
 	{
 		TRX_STATE |= CMD_FORCE_TRX_OFF;
@@ -708,8 +745,6 @@ void fAppTrxStateTransitionFromTxAaretOnToTrxOff (bool force)
 	// If TRX_STATUS = 0x1F (STATE_TRANSITION_IN_PROGRESS) the radio transceiver
 	// is  on  a  state  transition.  Do  not  try  to  initiate  a  further  state  change  while  the  radio
 	// transceiver is in STATE_TRANSITION_IN_PROGRESS.
-
-	while (TRX_STATUS == 0x1F);
 
 	System.trx.state.trxStatePrevious = System.trx.state.trxStateCurrent;
 	System.trx.state.trxStateCurrent = trxStateTrxOff;

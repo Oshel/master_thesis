@@ -20,9 +20,9 @@
 #define MAC_POSITION_FCF_FRAME_PENDING			4
 #define MAC_POSITION_FCF_ACK_REQUEST			5
 #define MAC_POSITION_FCF_INTRA_PAN				6
-#define MAC_POSITION_FCF_DEST_ADD_MODE			10
-#define MAC_POSITION_FCF_FRAME_VERSION			12
-#define MAC_POSITION_FCF_SRC_ADD_MODE			14
+#define MAC_POSITION_FCF_DEST_ADD_MODE			(10 - 8)
+#define MAC_POSITION_FCF_FRAME_VERSION			(12 - 8)
+#define MAC_POSITION_FCF_SRC_ADD_MODE			(14 - 8)
 
 // 0-2 bits in FCF
 typedef enum {
@@ -91,13 +91,35 @@ typedef struct {
 
 typedef struct {
 	tMacFcf				macFcf;
-	uint16_t			macSequenceNumber;
+	uint8_t				macSequenceNumber;
 	uint16_t			macDestPan;
 	uint16_t			macDestAdd;
 	uint16_t			macSrcPan;
 	uint16_t			macSrcAdd;
-	uint64_t			macAuxSecurityHdr;
+	uint8_t				macAuxSecurityHdr[5];
 	uint16_t			macCrc;
 } tMacMessage;
+
+extern void fMacMessageFcfPrepare (uint8_t* macMessageFcfPointer,
+								   eMacFrameType macFrameType,
+								   eMacSecurity macSecurity,
+								   eMacFramePending macFramePending,
+								   eMacAckRequest macAckRequest,
+								   eMacIntraPan macIntraPan,
+								   eMacDestAddMode macDestAddMode,
+								   eMacFrameVersion macFrameVersion,
+								   eMacSrcAddMode macSrcAddMode);
+
+extern void fMacMessageSequenceNumberPrepare (uint8_t* macMessageSequenceNumberPointer,
+											  uint8_t sequenceNumber);
+
+extern void fMacMessageAddressingFieldsPrepare (uint8_t* macMessageAddressingFieldsPointer,
+												uint16_t macDestinationPanId,
+												uint16_t macDestinationAddress,
+												uint16_t macSourcePanId,
+												uint16_t macSourceAddress);
+
+extern void fMacMessageAuxiliarySecurityHeaderPrepare (uint8_t* macMessageAuxiliarySecurityHeaderPointer,
+													   uint8_t* macAuxiliarySecurityHeader);
 
 #endif /* MACLAYER_H_ */

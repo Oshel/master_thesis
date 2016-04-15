@@ -5,7 +5,7 @@
  *  Author: Maciek
  */ 
 
-#include <main.h>
+#include "main.h"
 
  /**	
 * @brief: 	
@@ -68,6 +68,9 @@ ISR(TRX24_RX_END_vect)
 	// TRX24_RX_END interrupt and the radio transceiver reenters the state RX_ON.
 	// At the same time the bits RX_CRC_VALID of register PHY_RSSI are updated with the result
 	// of the FCS check.
+
+	fAppTrxStateCheck();
+	fAppTrxMessageReceive();
 }
 
 /**	
@@ -83,6 +86,8 @@ ISR(TRX24_RX_START_vect)
 	// synchronization  header (SHR), the receiver automatically enters the  BUSY_RX state. 
 	// The reception of a valid PHY header (PHR) generates an TRX24_RX_START interrupt
 	// and receives and demodulates the PSDU data. 
+
+	fAppTrxStateCheck();
 }
 
 /**	
@@ -94,7 +99,7 @@ ISR(TRX24_RX_START_vect)
 
 ISR(TRX24_TX_END_vect)
 {
-	
+	fAppTrxStateCheck();
 }
 
 /**	

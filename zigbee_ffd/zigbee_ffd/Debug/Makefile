@@ -34,18 +34,22 @@ LINKER_SCRIPT_DEP:=
 # Every subdirectory with source files must be described here
 SUBDIRS :=  \
 ../_inc \
+../_inc/app \
 ../_src \
-../_misc
+../_misc \
+../_src/app
 
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS +=  \
 ../main.c \
-../_src/appLayer.c \
+../_src/app/appTrx.c \
+../_src/app/appSystemTimer.c \
+../_src/app/systemTimerInterrupts.c \
+../_src/app/trxInterrupts.c \
+../_src/app/trxStateTransitions.c \
 ../_src/macLayer.c \
-../_src/nwkLayer.c \
-../_src/trxInterrupts.c \
-../_src/trxStateTransitions.c
+../_src/nwkLayer.c
 
 
 PREPROCESSING_SRCS += 
@@ -56,35 +60,43 @@ ASM_SRCS +=
 
 OBJS +=  \
 main.o \
-_src/appLayer.o \
+_src/app/appTrx.o \
+_src/app/appSystemTimer.o \
+_src/app/systemTimerInterrupts.o \
+_src/app/trxInterrupts.o \
+_src/app/trxStateTransitions.o \
 _src/macLayer.o \
-_src/nwkLayer.o \
-_src/trxInterrupts.o \
-_src/trxStateTransitions.o
+_src/nwkLayer.o
 
 OBJS_AS_ARGS +=  \
 main.o \
-_src/appLayer.o \
+_src/app/appTrx.o \
+_src/app/appSystemTimer.o \
+_src/app/systemTimerInterrupts.o \
+_src/app/trxInterrupts.o \
+_src/app/trxStateTransitions.o \
 _src/macLayer.o \
-_src/nwkLayer.o \
-_src/trxInterrupts.o \
-_src/trxStateTransitions.o
+_src/nwkLayer.o
 
 C_DEPS +=  \
 main.d \
-_src/appLayer.d \
+_src/app/appTrx.d \
+_src/app/appSystemTimer.d \
+_src/app/systemTimerInterrupts.d \
+_src/app/trxInterrupts.d \
+_src/app/trxStateTransitions.d \
 _src/macLayer.d \
-_src/nwkLayer.d \
-_src/trxInterrupts.d \
-_src/trxStateTransitions.d
+_src/nwkLayer.d
 
 C_DEPS_AS_ARGS +=  \
 main.d \
-_src/appLayer.d \
+_src/app/appTrx.d \
+_src/app/appSystemTimer.d \
+_src/app/systemTimerInterrupts.d \
+_src/app/trxInterrupts.d \
+_src/app/trxStateTransitions.d \
 _src/macLayer.d \
-_src/nwkLayer.d \
-_src/trxInterrupts.d \
-_src/trxStateTransitions.d
+_src/nwkLayer.d
 
 OUTPUT_FILE_PATH +=zigbee_ffd.elf
 
@@ -113,17 +125,28 @@ LINKER_SCRIPT_DEP+=
 
 
 
+
+
+
+
 ./%.o: .././%.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : 4.9.2
-	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.0.98\include" -I"../../../common/_misc" -I"../_inc" -I"../_src" -I".."  -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -mrelax -g2 -Wall -mmcu=atmega128rfa1 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.0.98\gcc\dev\atmega128rfa1" -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.0.98\include" -I"../../../common/_misc" -I".."  -O0 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -mrelax -g2 -Wall -mmcu=atmega128rfa1 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.0.98\gcc\dev\atmega128rfa1" -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
+_src/app/%.o: ../_src/app/%.c
+	@echo Building file: $<
+	@echo Invoking: AVR/GNU C Compiler : 4.9.2
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.0.98\include" -I"../../../common/_misc" -I".."  -O0 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -mrelax -g2 -Wall -mmcu=atmega128rfa1 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.0.98\gcc\dev\atmega128rfa1" -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
 	@echo Finished building: $<
 	
 
 _src/%.o: ../_src/%.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : 4.9.2
-	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.0.98\include" -I"../../../common/_misc" -I"../_inc" -I"../_src" -I".."  -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -mrelax -g2 -Wall -mmcu=atmega128rfa1 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.0.98\gcc\dev\atmega128rfa1" -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.0.98\include" -I"../../../common/_misc" -I".."  -O0 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -mrelax -g2 -Wall -mmcu=atmega128rfa1 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.0.98\gcc\dev\atmega128rfa1" -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
 	@echo Finished building: $<
 	
 

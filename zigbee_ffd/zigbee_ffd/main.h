@@ -11,14 +11,13 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <string.h>
 
-#include <macLayer.h>
-#include <trxStateTransitions.h>
-
-typedef enum {
-	false							= 0,
-	true							= 1
-} bool;
+#include "_inc/macLayer.h"
+#include "_inc/nwkLayer.h"
+#include "_inc/app/appSystemTimer.h"
+#include "_inc/app/appTrx.h"
+#include "_inc/app/trxStateTransitions.h"
 
 typedef enum {
 	trxPowerLevelP35dBm				= 0,
@@ -138,11 +137,23 @@ typedef struct {
 } tTrxState;
 
 typedef struct {
+	uint8_t							psyPhr;
+	tMacMessage						macMessage;
+	uint8_t							macMsdu;
+} tTrxMessageReceived;
+
+typedef struct {
 	tTrxState						state;
+	tTrxMessageReceived				messageReceived;
 } tTrx;
 
 typedef struct {
+	uint16_t						test;
+} tTimeOutMs;
+
+typedef struct {
 	tTrx							trx;
+	tTimeOutMs						TimeOutMs;
 } tSystem;
 
 extern tSystem System;

@@ -20,17 +20,28 @@
 // Functions declarations
 // void nameFunction(uint8_t variableName);
 
-void fMacMessageFcfDecode (tMacFcf* macMessageFcfPointer);
+void fMacMessageFcfDecode (tMacFcf* macMessageFcfPointer,
+						   volatile uint8_t* addressSource);
 
-void fMacMessageSequenceNumberDecode (uint8_t* macMessageSequenceNumberPointer);
+void fMacMessageSequenceNumberDecode (uint8_t* macMessageSequenceNumberPointer,
+									  volatile uint8_t* addressSource);
 
-void fMacMessageAddressingFieldsDecode (uint16_t* macMessageAddressingFieldsDestPanPointer,
-										uint16_t* macMessageAddressingFieldsDestAddPointer,
-										uint16_t* macMessageAddressingFieldsSrcPanPointer,
-										uint16_t* macMessageAddressingFieldsSrcAddPointer);
+uint8_t fMacMessageAddressingFieldsDecode (tMacFcf* macMessageFcfPointer,
+									 	   uint16_t* macMessageAddressingFieldsDestPanPointer,
+										   uint16_t* macMessageAddressingFieldsDestAddPointer,
+										   uint16_t* macMessageAddressingFieldsSrcPanPointer,
+										   uint16_t* macMessageAddressingFieldsSrcAddPointer,
+										   volatile uint8_t* addressSource);
 
-void fMacMessageAuxiliarySecurityHeaderDecode (uint8_t* macMessageAuxiliarySecurityHeaderPointer);
+void fMacMessageAuxiliarySecurityHeaderDecode (uint8_t* macMessageAuxiliarySecurityHeaderPointer,
+											   uint8_t frameOffset,
+											   volatile uint8_t* addressSource);
 
+void fMacMessageMsduDecode (uint8_t* macMessageMsduPointer,
+							uint8_t frameOffset,
+							uint8_t macMessageMpduLength,
+							volatile uint8_t* addressSource);
+							
 void fMacMessageFcfPrepare (uint8_t* macMessageFcfPointer,
 							eMacFrameType macFrameType,
 							eMacSecurity macSecurity,
@@ -60,9 +71,18 @@ void fMacMessageAuxiliarySecurityHeaderPrepare (uint8_t* macMessageAuxiliarySecu
   *			
   */
 
-void fMacMessageFcfDecode (tMacFcf* macMessageFcfPointer)
+void fMacMessageFcfDecode (tMacFcf* macMessageFcfPointer,
+						   volatile uint8_t* addressSource)
 {
-	
+	macMessageFcfPointer->macFrameType = ((*addressSource >> MAC_POSITION_FCF_FRAME_TYPE) & 0x07);
+	macMessageFcfPointer->macSecurity = ((*addressSource >> MAC_POSITION_FCF_SECURITY) & 0x01);
+	macMessageFcfPointer->macFramePending = ((*addressSource >> MAC_POSITION_FCF_FRAME_PENDING) & 0x01);
+	macMessageFcfPointer->macAckRequest = ((*addressSource >> MAC_POSITION_FCF_ACK_REQUEST) & 0x01);
+	macMessageFcfPointer->macIntraPan = ((*addressSource >> MAC_POSITION_FCF_INTRA_PAN) & 0x01);
+
+	macMessageFcfPointer->macDestAddMode = ((*(addressSource + 1) >> MAC_POSITION_FCF_DEST_ADD_MODE) & 0x03);
+	macMessageFcfPointer->macFrameVersion = ((*(addressSource + 1) >> MAC_POSITION_FCF_FRAME_VERSION) & 0x03);
+	macMessageFcfPointer->macSrcAddMode = ((*(addressSource + 1) >> MAC_POSITION_FCF_SRC_ADD_MODE) & 0x03);
 }
 
 /**	
@@ -72,9 +92,10 @@ void fMacMessageFcfDecode (tMacFcf* macMessageFcfPointer)
   *			
   */
 
-void fMacMessageSequenceNumberDecode (uint8_t* macMessageSequenceNumberPointer)
+void fMacMessageSequenceNumberDecode (uint8_t* macMessageSequenceNumberPointer,
+									  volatile uint8_t* addressSource)
 {
-
+	*macMessageSequenceNumberPointer = *(addressSource + 2);
 }
 
 /**	
@@ -84,12 +105,92 @@ void fMacMessageSequenceNumberDecode (uint8_t* macMessageSequenceNumberPointer)
   *			
   */
 
-void fMacMessageAddressingFieldsDecode (uint16_t* macMessageAddressingFieldsDestPanPointer,
-										uint16_t* macMessageAddressingFieldsDestAddPointer,
-										uint16_t* macMessageAddressingFieldsSrcPanPointer,
-										uint16_t* macMessageAddressingFieldsSrcAddPointer)
+uint8_t fMacMessageAddressingFieldsDecode (tMacFcf* macMessageFcfPointer,
+										   uint16_t* macMessageAddressingFieldsDestPanPointer,
+										   uint16_t* macMessageAddressingFieldsDestAddPointer,
+										   uint16_t* macMessageAddressingFieldsSrcPanPointer,
+										   uint16_t* macMessageAddressingFieldsSrcAddPointer,
+										   volatile uint8_t* addressSource)
 {
-	
+	if (macMessageFcfPointer->macDestAddMode == macDestAddModePanAndAddFielsNotPresent)
+	{
+		if (macMessageFcfPointer->macSrcAddMode == macSrcAddModePanAndAddFielsNotPresent)
+		{
+			// No offset, no pan/add fields
+			// No women, no cry
+			return 0;
+		} else if (macMessageFcfPointer->macSrcAddMode == macSrcAddModeAdd16Bit)
+		{
+			// 2 bytes PAN Src
+			// 2 bytes Add Src
+			return 4;
+		} else if (macMessageFcfPointer->macSrcAddMode == macSrcAddModeAdd64Bit)
+		{
+			// 2 bytes PAN Src
+			// 8 bytes Add Src
+			return 10;
+		}
+	} else if (macMessageFcfPointer->macDestAddMode == macDestAddModeAdd16Bit)
+	{
+		if (macMessageFcfPointer->macSrcAddMode == macSrcAddModePanAndAddFielsNotPresent)
+		{
+			// 2 bytes PAN Dest
+			// 2 bytes Add Dest
+			return 4;
+		} else if (macMessageFcfPointer->macSrcAddMode == macSrcAddModeAdd16Bit)
+		{
+			*macMessageAddressingFieldsDestPanPointer = (*(addressSource + 4) << 8) |
+													    (*(addressSource + 3));
+
+			*macMessageAddressingFieldsDestAddPointer = (*(addressSource + 6) << 8) |
+													    (*(addressSource + 5));
+			
+			*macMessageAddressingFieldsSrcPanPointer = (*(addressSource + 8) << 8) |
+													   (*(addressSource + 7));
+			
+			
+			*macMessageAddressingFieldsSrcAddPointer = (*(addressSource + 10) << 8) |
+													   (*(addressSource + 9));
+
+			// 2 bytes PAN Dest
+			// 2 bytes Add Dest
+			// 2 bytes PAN Src
+			// 2 bytes Add Src
+			return 8;
+		} else if (macMessageFcfPointer->macSrcAddMode == macSrcAddModeAdd64Bit)
+		{
+			// 2 bytes PAN Dest
+			// 2 bytes Add Dest
+			// 2 bytes PAN Src
+			// 8 bytes Add Src
+			return 14;
+		}
+	} else if (macMessageFcfPointer->macDestAddMode == macDestAddModeAdd64Bit)
+	{
+		if (macMessageFcfPointer->macSrcAddMode == macSrcAddModePanAndAddFielsNotPresent)
+		{
+			// 2 bytes PAN Dest
+			// 8 bytes Add Dest
+			return 10;
+		} else if (macMessageFcfPointer->macSrcAddMode == macSrcAddModeAdd16Bit)
+		{
+			// 2 bytes PAN Dest
+			// 8 bytes Add Dest
+			// 2 bytes PAN Src
+			// 2 bytes Add Src
+			return 14;
+		} else if (macMessageFcfPointer->macSrcAddMode == macSrcAddModeAdd64Bit)
+		{
+			// 2 bytes PAN Dest
+			// 8 bytes Add Dest
+			// 2 bytes PAN Src
+			// 8 bytes Add Src
+			return 20;
+		}
+	}
+
+	// Reserved Addressing Modes
+	return 0;
 }
 
 /**	
@@ -99,9 +200,26 @@ void fMacMessageAddressingFieldsDecode (uint16_t* macMessageAddressingFieldsDest
   *			
   */
 
-void fMacMessageAuxiliarySecurityHeaderDecode (uint8_t* macMessageAuxiliarySecurityHeaderPointer)
+void fMacMessageAuxiliarySecurityHeaderDecode (uint8_t* macMessageAuxiliarySecurityHeaderPointer,
+											   uint8_t frameOffset,
+											   volatile uint8_t* addressSource)
 {
-	
+	*macMessageAuxiliarySecurityHeaderPointer = addressSource[3 + frameOffset];
+}
+
+/**	
+* @brief: 	
+  @param: 
+  *			
+  *			
+  */
+
+void fMacMessageMsduDecode (uint8_t* macMessageMsduPointer,
+							uint8_t frameOffset,
+							uint8_t macMessageMpduLength,
+							volatile uint8_t * addressSource)
+{
+	memcpy((void *) macMessageMsduPointer, (void *)(addressSource + 3 + frameOffset), macMessageMpduLength - frameOffset - 2 - 3);
 }
 
 /**	
@@ -158,17 +276,17 @@ void fMacMessageAddressingFieldsPrepare (uint8_t* macMessageAddressingFieldsPoin
 										 uint16_t macSourcePanId,
 										 uint16_t macSourceAddress)
 {
-	macMessageAddressingFieldsPointer[0] = (uint8_t)(macDestinationPanId >> 8);		// MSB
-	macMessageAddressingFieldsPointer[1] = (uint8_t) macDestinationPanId;			// LSB
+	macMessageAddressingFieldsPointer[1] = (uint8_t)(macDestinationPanId >> 8);		// MSB
+	macMessageAddressingFieldsPointer[0] = (uint8_t) macDestinationPanId;			// LSB
 
-	macMessageAddressingFieldsPointer[2] = (uint8_t)(macDestinationAddress >> 8);	// MSB
-	macMessageAddressingFieldsPointer[3] = (uint8_t) macDestinationAddress;			// LSB
+	macMessageAddressingFieldsPointer[3] = (uint8_t)(macDestinationAddress >> 8);	// MSB
+	macMessageAddressingFieldsPointer[2] = (uint8_t) macDestinationAddress;			// LSB
 
-	macMessageAddressingFieldsPointer[4] = (uint8_t)(macSourcePanId >> 8);			// MSB
-	macMessageAddressingFieldsPointer[5] = (uint8_t) macSourcePanId;				// LSB
+	macMessageAddressingFieldsPointer[5] = (uint8_t)(macSourcePanId >> 8);			// MSB
+	macMessageAddressingFieldsPointer[4] = (uint8_t) macSourcePanId;				// LSB
 
-	macMessageAddressingFieldsPointer[6] = (uint8_t)(macSourceAddress >> 8);		// MSB
-	macMessageAddressingFieldsPointer[7] = (uint8_t) macSourceAddress;				// LSB
+	macMessageAddressingFieldsPointer[7] = (uint8_t)(macSourceAddress >> 8);		// MSB
+	macMessageAddressingFieldsPointer[6] = (uint8_t) macSourceAddress;				// LSB
 }
 
 /**	
@@ -178,8 +296,8 @@ void fMacMessageAddressingFieldsPrepare (uint8_t* macMessageAddressingFieldsPoin
   *			
   */
 
-void fMacMessageAuxiliarySecurityHeader (uint8_t* macMessageAuxiliarySecurityHeaderPointer,
-										 uint8_t* macAuxiliarySecurityHeader)
+void fMacMessageAuxiliarySecurityHeaderPrepare (uint8_t* macMessageAuxiliarySecurityHeaderPointer,
+												uint8_t* macAuxiliarySecurityHeader)
 {
 	macMessageAuxiliarySecurityHeaderPointer[0] = macAuxiliarySecurityHeader[0];
 	macMessageAuxiliarySecurityHeaderPointer[1] = macAuxiliarySecurityHeader[1];

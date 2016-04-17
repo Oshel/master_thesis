@@ -22,6 +22,15 @@
 
 void fAppTrxInit(void);
 
+void fAppTrxMessageSend (tMacMessage* macMessage,
+						 uint8_t* macMsdu,
+						 uint8_t macMsduLength);
+
+void fAppTrxMessageReceive (tTrxMessageReceived* macMessage,
+							volatile uint8_t* addressLength,
+							volatile uint8_t* addressSource);
+
+
 void fAppTrxSetPower(uint8_t powerLevel);
 void fAppTrxSetChannel (eTrxChannel channel);
 void fAppTrxSetCcaMode (eTrxCcaMode ccaMode);
@@ -101,9 +110,48 @@ void fAppTrxInit(void)
 				(1 << AWAKE_EN);
 }
 
-void fAppTrxMessageReceive (void)
+void fAppTrxMessageReceive (tTrxMessageReceived* message,
+							volatile uint8_t* addressLength,
+							volatile uint8_t* addressSource)
 {
+	// frameOffset is a variable which is responsible for indicating what is the offset based on destination/source addressing mode
+	// and on security enabling (5 bytes of security)
+	uint8_t frameOffset;
 
+	message->phyRssi = System.trx.rssiAfterReceive;
+
+	message->psyPhr = addressLength[0];
+
+	fMacMessageFcfDecode(&message->macMessage.macFcf,
+						 addressSource);
+
+	fMacMessageSequenceNumberDecode(&message->macMessage.macSequenceNumber,
+									addressSource);
+									
+	frameOffset = fMacMessageAddressingFieldsDecode(&message->macMessage.macFcf,
+												    &message->macMessage.macDestPan,
+												    &message->macMessage.macDestAdd,
+												    &message->macMessage.macSrcPan,
+												    &message->macMessage.macSrcAdd,
+												    addressSource);
+
+	if (message->macMessage.macFcf.macSecurity == macSecurityEnabled)
+	{
+		fMacMessageAuxiliarySecurityHeaderDecode(message->macMessage.macAuxSecurityHdr,
+												 frameOffset,
+												 addressSource);
+		
+		// 5 additional bytes
+		frameOffset += 5;
+	}
+
+	fMacMessageMsduDecode(message->macMsdu,
+						  frameOffset,
+						  message->psyPhr,
+						  addressSource);
+
+	message->phyLqi = *(addressSource + message->psyPhr);
+	message->phyEd = fAppTrxReadEd();
 }
 
 /**	
@@ -153,6 +201,7 @@ void fAppTrxMessageSend (tMacMessage* macMessage,
 		byteCounter += 5;
 	}
 
+	
 	memcpy(&sendBuffer[byteCounter], macMsdu, macMsduLength);
 
 	byteCounter += macMsduLength;
@@ -170,10 +219,10 @@ void fAppTrxMessageSend (tMacMessage* macMessage,
 	// Change state to PllOn to prevent from receiving new frames
 	fAppTrxStateTransition(System.trx.state.trxStateCurrent, trxStatePllOn, false, false);
 
-	// Load frame length
-	TRXFBST = byteCounter;
+	// Load frame length (plus CRC)
+	TRXFBST = byteCounter + 2;
 	// Load the frame
-	memcpy((void *)(&TRXFBST+1), sendBuffer, byteCounter);
+	memcpy((void *)(&TRXFBST + 1), sendBuffer, byteCounter);
 
 	// Change state to BusyTx to send the frame
 	fAppTrxStateTransition(System.trx.state.trxStateCurrent, trxStateBusyTx, false, false);

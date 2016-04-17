@@ -132,22 +132,6 @@ typedef enum {
 } eTrxBackOffExponent;
 
 typedef struct {
-	eTrxState						trxStateCurrent;
-	eTrxState						trxStatePrevious;	
-} tTrxState;
-
-typedef struct {
-	uint8_t							psyPhr;
-	tMacMessage						macMessage;
-	uint8_t							macMsdu;
-} tTrxMessageReceived;
-
-typedef struct {
-	tTrxState						state;
-	tTrxMessageReceived				messageReceived;
-} tTrx;
-
-typedef struct {
 	uint16_t						test;
 } tTimeOutMs;
 

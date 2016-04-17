@@ -100,6 +100,28 @@ typedef struct {
 	uint16_t			macCrc;
 } tMacMessage;
 
+extern void fMacMessageFcfDecode (tMacFcf* macMessageFcfPointer,
+								  volatile uint8_t* addressSource);
+
+extern void fMacMessageSequenceNumberDecode (uint8_t* macMessageSequenceNumberPointer,
+											 volatile uint8_t* addressSource);
+
+extern uint8_t fMacMessageAddressingFieldsDecode (tMacFcf* macMessageFcfPointer,
+												  uint16_t* macMessageAddressingFieldsDestPanPointer,
+											      uint16_t* macMessageAddressingFieldsDestAddPointer,
+											      uint16_t* macMessageAddressingFieldsSrcPanPointer,
+									  		      uint16_t* macMessageAddressingFieldsSrcAddPointer,
+											      volatile uint8_t* addressSource);
+
+extern void fMacMessageAuxiliarySecurityHeaderDecode (uint8_t* macMessageAuxiliarySecurityHeaderPointer,
+													  uint8_t frameOffset,
+													  volatile uint8_t* addressSource);
+
+extern void fMacMessageMsduDecode (uint8_t* macMessageMsduPointer,
+								   uint8_t frameOffset,
+								   uint8_t macMessageMpduLength,
+								   volatile uint8_t* addressSource);
+
 extern void fMacMessageFcfPrepare (uint8_t* macMessageFcfPointer,
 								   eMacFrameType macFrameType,
 								   eMacSecurity macSecurity,

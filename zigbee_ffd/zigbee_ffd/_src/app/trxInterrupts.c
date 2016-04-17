@@ -69,8 +69,12 @@ ISR(TRX24_RX_END_vect)
 	// At the same time the bits RX_CRC_VALID of register PHY_RSSI are updated with the result
 	// of the FCS check.
 
+	DDRG ^= (1 << 2);
+
 	fAppTrxStateCheck();
-	fAppTrxMessageReceive();
+	fAppTrxMessageReceive(&System.trx.messageReceived,
+						  &TST_RX_LENGTH,
+						  &TRXFBST);
 }
 
 /**	
@@ -86,6 +90,8 @@ ISR(TRX24_RX_START_vect)
 	// synchronization  header (SHR), the receiver automatically enters the  BUSY_RX state. 
 	// The reception of a valid PHY header (PHR) generates an TRX24_RX_START interrupt
 	// and receives and demodulates the PSDU data. 
+
+	System.trx.rssiAfterReceive = fAppTrxReadRssi();
 
 	fAppTrxStateCheck();
 }
@@ -117,5 +123,7 @@ ISR(TRX24_XAH_AMI_vect)
 	//issued, refer to "Interrupt  Logic" on page 34. The expected address values are to be
 	//stored  in  the  registers  Short-Address,  PAN-ID  and  IEEE-address.  Frame  filtering  is
 	//available in Basic and Extended Operating Mode, refer to section "Frame Filtering" on page 56.
+
+	fAppTrxStateCheck();
 }
 

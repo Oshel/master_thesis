@@ -27,12 +27,13 @@ int main(void)
 	msg.macSrcPan = 0x0001;
 	msg.macSrcAdd = 0x0001;
 
-	fAppTrxMessageSend(&msg, buf, sizeof(buf));
-
 	DDRG |= (1 << 2);
 
 	fAppSystemTimerInit();
 	fAppTrxInit();
+
+	fAppTrxStateCheck();
+	fAppTrxStateTransition(System.trx.state.trxStateCurrent, trxStateRxOn, false, false);
 
 	sei();
 
@@ -41,9 +42,9 @@ int main(void)
     {
 		if (System.TimeOutMs.test == 0)
 		{
-			System.TimeOutMs.test = 1000;
-			DDRG ^= (1 << 2);
-			fAppTrxMessageSend(&msg, buf, sizeof(buf));
+			//System.TimeOutMs.test = 1000;
+			//DDRG ^= (1 << 2);
+			//fAppTrxMessageSend(&msg, buf, sizeof(buf));
 		}
     }
 }

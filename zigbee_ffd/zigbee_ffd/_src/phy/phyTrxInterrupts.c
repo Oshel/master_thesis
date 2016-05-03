@@ -5,7 +5,7 @@
  *  Author: Maciek
  */ 
 
-#include "main.h"
+#include <main.h>
 
  /**	
 * @brief: 	
@@ -28,7 +28,7 @@ ISR(TRX24_AWAKE_vect)
 
 ISR(TRX24_CCA_ED_DONE_vect)
 {
-	
+	System.phy.flags.txCcaEdDone = true;
 }
 
 /**	
@@ -40,7 +40,7 @@ ISR(TRX24_CCA_ED_DONE_vect)
 
 ISR(TRX24_PLL_LOCK_vect)
 {
-	
+	//System.trx.pllLockForExtended = true;
 }
 
 /**	
@@ -64,17 +64,21 @@ ISR(TRX24_PLL_UNLOCK_vect)
 
 ISR(TRX24_RX_END_vect)
 {
+	eTrxState state = fPhyTrxStateCheck();
+
 	// The completion  of  the  frame  reception  is  indicated  by  an
 	// TRX24_RX_END interrupt and the radio transceiver reenters the state RX_ON.
 	// At the same time the bits RX_CRC_VALID of register PHY_RSSI are updated with the result
 	// of the FCS check.
 
-	DDRG ^= (1 << 2);
-
-	fAppTrxStateCheck();
-	fAppTrxMessageReceive(&System.trx.messageReceived,
-						  &TST_RX_LENGTH,
-						  &TRXFBST);
+	if (state == trxStateBusyRxAack ||				// In case of ACK demand
+		state == trxStateRxAackOn)					// In case of no ACK demand
+	{
+		if (PHY_RSSI & (1 << RX_CRC_VALID))			// Check CRC (needed in ACK demand)
+		{
+			fPhyFifoAdd();
+		}
+	}
 }
 
 /**	
@@ -86,14 +90,19 @@ ISR(TRX24_RX_END_vect)
 
 ISR(TRX24_RX_START_vect)
 {
+	eTrxState state = fPhyTrxStateCheck();
+
 	// During  RX_ON  state  the  receiver  listens  for  incoming  frames.  After  detecting  a  valid
 	// synchronization  header (SHR), the receiver automatically enters the  BUSY_RX state. 
 	// The reception of a valid PHY header (PHR) generates an TRX24_RX_START interrupt
 	// and receives and demodulates the PSDU data. 
 
-	System.trx.rssiAfterReceive = fAppTrxReadRssi();
+	System.trx.rssiAfterReceive = fPhyTrxReadRssi();
 
-	fAppTrxStateCheck();
+	if (state == trxStateBusyRxAack)
+	{
+		// SHR detected
+	}
 }
 
 /**	
@@ -105,7 +114,20 @@ ISR(TRX24_RX_START_vect)
 
 ISR(TRX24_TX_END_vect)
 {
-	fAppTrxStateCheck();
+	eTrxState state = fPhyTrxStateCheck();
+
+	switch ((uint8_t) state)
+	{
+		case trxStateRxAackOn:
+			// End of RX_AACK
+			// ACK Sent
+			break;
+		case trxStateTxAretOn:
+			// End of TX_ARET
+			// Determine what was effect
+			System.phy.flags.txAretStatusFlag = fPhyTrxStatusCheck();
+			break;
+	}
 }
 
 /**	
@@ -124,6 +146,6 @@ ISR(TRX24_XAH_AMI_vect)
 	//stored  in  the  registers  Short-Address,  PAN-ID  and  IEEE-address.  Frame  filtering  is
 	//available in Basic and Extended Operating Mode, refer to section "Frame Filtering" on page 56.
 
-	fAppTrxStateCheck();
+	fPhyTrxStateCheck();
 }
 

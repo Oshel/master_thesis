@@ -26,7 +26,17 @@ typedef enum {
 	trxStateTransitionInProgress	= 0x1F
 } eTrxState;
 
-extern eTrxState fAppTrxStateCheck (void);
-extern bool fAppTrxStateTransition (eTrxState fromState, eTrxState toState, bool forceTrxOff, bool forcePllOn);
+typedef enum {
+	trxStatusSuccess				= 0,
+	trxStatusSuccessDataPending		= 1,
+	trxStatusSuccessWaitForAck		= 2,
+	trxStatusChannelAccessFailure	= 3,
+	trxStatusNoAck					= 5,
+	trxStatusInvalid				= 7
+} eTrxStatus;
+
+extern eTrxState fPhyTrxStateCheck (void);
+extern eTrxStatus fPhyTrxStatusCheck (void);
+extern bool fPhyTrxStateTransition (eTrxState fromState, eTrxState toState, bool forceTrxOff, bool forcePllOn);
 
 #endif /* TRXSTATETRANSITIONS_H_ */

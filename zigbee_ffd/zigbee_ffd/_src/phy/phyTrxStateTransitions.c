@@ -7,34 +7,35 @@
 
 #include <main.h>
 
-eTrxState fAppTrxStateCheck (void);
-bool fAppTrxStateTransition (eTrxState fromState, eTrxState toState, bool forceTrxOff, bool forcePllOn);
+eTrxState fPhyTrxStateCheck (void);
+eTrxStatus fPhyTrxStatusCheck (void);
+bool fPhyTrxStateTransition (eTrxState fromState, eTrxState toState, bool forceTrxOff, bool forcePllOn);
 
-void fAppTrxStateTransitionFromResetToTrxOff(void);
+void fPhyTrxStateTransitionFromResetToTrxOff(void);
 
-void fAppTrxStateTransitionFromTrxOffToSleep (void);
-void fAppTrxStateTransitionFromTrxOffToRxOn (void);
-void fAppTrxStateTransitionFromTrxOffToRxAackOn (void);
-void fAppTrxStateTransitionFromTrxOffToPllOn (bool force);
-void fAppTrxStateTransitionFromTrxOffToTxAaretOn (void);
+void fPhyTrxStateTransitionFromTrxOffToSleep (void);
+void fPhyTrxStateTransitionFromTrxOffToRxOn (void);
+void fPhyTrxStateTransitionFromTrxOffToRxAackOn (void);
+void fPhyTrxStateTransitionFromTrxOffToPllOn (bool force);
+void fPhyTrxStateTransitionFromTrxOffToTxAaretOn (void);
 
-void fAppTrxStateTransitionFromSleepToTrxOff (void);
+void fPhyTrxStateTransitionFromSleepToTrxOff (void);
 
-void fAppTrxStateTransitionFromPllOnToTrxOff (bool force);
-void fAppTrxStateTransitionFromPllOnToRxOn (void);
-void fAppTrxStateTransitionFromPllOnToBusyTx (void);
-void fAppTrxStateTransitionFromPllOnToTxAretOn (void);
-void fAppTrxStateTransitionFromPllOnToRxAackOn (void);
+void fPhyTrxStateTransitionFromPllOnToTrxOff (bool force);
+void fPhyTrxStateTransitionFromPllOnToRxOn (void);
+void fPhyTrxStateTransitionFromPllOnToBusyTx (void);
+void fPhyTrxStateTransitionFromPllOnToTxAretOn (void);
+void fPhyTrxStateTransitionFromPllOnToRxAackOn (void);
 
-void fAppTrxStateTransitionFromRxOnToTrxOff (bool force);
-void fAppTrxStateTransitionFromRxOnToPllOn (bool force);
+void fPhyTrxStateTransitionFromRxOnToTrxOff (bool force);
+void fPhyTrxStateTransitionFromRxOnToPllOn (bool force);
 
-void fAppTrxStateTransitionFromRxAackOnToTrxOff (bool force);
-void fAppTrxStateTransitionFromRxAackOnToPllOn (bool force);
+void fPhyTrxStateTransitionFromRxAackOnToTrxOff (bool force);
+void fPhyTrxStateTransitionFromRxAackOnToPllOn (bool force);
 
-void fAppTrxStateTransitionFromTxAaretOnToPllOn (bool force);
-void fAppTrxStateTransitionFromTxAaretOnToBusyTxAret (void);
-void fAppTrxStateTransitionFromTxAaretOnToTrxOff (bool force);
+void fPhyTrxStateTransitionFromTxAaretOnToPllOn (bool force);
+void fPhyTrxStateTransitionFromTxAaretOnToBusyTxAret (void);
+void fPhyTrxStateTransitionFromTxAaretOnToTrxOff (bool force);
 
 /**	
 * @brief: 	
@@ -43,7 +44,7 @@ void fAppTrxStateTransitionFromTxAaretOnToTrxOff (bool force);
   *			
   */
 
-eTrxState fAppTrxStateCheck (void)
+eTrxState fPhyTrxStateCheck (void)
 {
 	eTrxState actualState;
 
@@ -62,7 +63,25 @@ eTrxState fAppTrxStateCheck (void)
   *			
   */
 
-bool fAppTrxStateTransition (eTrxState fromState, eTrxState toState, bool forceTrxOff, bool forcePllOn)
+eTrxStatus fPhyTrxStatusCheck (void)
+{
+	eTrxStatus actualStatus;
+
+	actualStatus = (eTrxStatus)((TRX_STATE >> 5) & 0x07);
+
+	System.trx.status.trxStatusCurrent = actualStatus;
+
+	return actualStatus;
+}
+
+/**	
+* @brief: 	
+  @param: 
+  *			
+  *			
+  */
+
+bool fPhyTrxStateTransition (eTrxState fromState, eTrxState toState, bool forceTrxOff, bool forcePllOn)
 {
 	switch ((uint8_t) fromState)
 	{
@@ -70,7 +89,7 @@ bool fAppTrxStateTransition (eTrxState fromState, eTrxState toState, bool forceT
 			switch ((uint8_t) toState)
 			{
 				case trxStateTrxOff:
-					fAppTrxStateTransitionFromResetToTrxOff();
+					fPhyTrxStateTransitionFromResetToTrxOff();
 					break;
 				default:
 					break;
@@ -80,33 +99,33 @@ bool fAppTrxStateTransition (eTrxState fromState, eTrxState toState, bool forceT
 			switch((uint8_t) toState)
 			{
 				case trxStateTrxOff:
-					fAppTrxStateTransitionFromSleepToTrxOff();
+					fPhyTrxStateTransitionFromSleepToTrxOff();
 					break;
 				case trxStatePllOn:
-					fAppTrxStateTransitionFromSleepToTrxOff();
-					fAppTrxStateTransitionFromTrxOffToPllOn(forcePllOn);
+					fPhyTrxStateTransitionFromSleepToTrxOff();
+					fPhyTrxStateTransitionFromTrxOffToPllOn(forcePllOn);
 					break;
 				case trxStateRxOn:
-					fAppTrxStateTransitionFromSleepToTrxOff();
-					fAppTrxStateTransitionFromTrxOffToRxOn();
+					fPhyTrxStateTransitionFromSleepToTrxOff();
+					fPhyTrxStateTransitionFromTrxOffToRxOn();
 					break;
 				case trxStateRxAackOn:
-					fAppTrxStateTransitionFromSleepToTrxOff();
-					fAppTrxStateTransitionFromTrxOffToRxAackOn();
+					fPhyTrxStateTransitionFromSleepToTrxOff();
+					fPhyTrxStateTransitionFromTrxOffToRxAackOn();
 					break;
 				case trxStateTxAretOn:
-					fAppTrxStateTransitionFromSleepToTrxOff();
-					fAppTrxStateTransitionFromTrxOffToTxAaretOn();
+					fPhyTrxStateTransitionFromSleepToTrxOff();
+					fPhyTrxStateTransitionFromTrxOffToTxAaretOn();
 					break;
 				case trxStateBusyTx:
-					fAppTrxStateTransitionFromSleepToTrxOff();
-					fAppTrxStateTransitionFromTrxOffToPllOn(forcePllOn);
-					fAppTrxStateTransitionFromPllOnToBusyTx();
+					fPhyTrxStateTransitionFromSleepToTrxOff();
+					fPhyTrxStateTransitionFromTrxOffToPllOn(forcePllOn);
+					fPhyTrxStateTransitionFromPllOnToBusyTx();
 					break;
 				case trxStateBusyTxAret:
-					fAppTrxStateTransitionFromSleepToTrxOff();
-					fAppTrxStateTransitionFromTrxOffToTxAaretOn();
-					fAppTrxStateTransitionFromTxAaretOnToBusyTxAret();
+					fPhyTrxStateTransitionFromSleepToTrxOff();
+					fPhyTrxStateTransitionFromTrxOffToTxAaretOn();
+					fPhyTrxStateTransitionFromTxAaretOnToBusyTxAret();
 					break;
 				default:
 					break;
@@ -116,27 +135,27 @@ bool fAppTrxStateTransition (eTrxState fromState, eTrxState toState, bool forceT
 			switch((uint8_t) toState)
 			{
 				case trxStateSleep:
-					fAppTrxStateTransitionFromTrxOffToSleep();
+					fPhyTrxStateTransitionFromTrxOffToSleep();
 					break;
 				case trxStatePllOn:
-					fAppTrxStateTransitionFromTrxOffToPllOn(forcePllOn);
+					fPhyTrxStateTransitionFromTrxOffToPllOn(forcePllOn);
 					break;
 				case trxStateRxOn:
-					fAppTrxStateTransitionFromTrxOffToRxOn();
+					fPhyTrxStateTransitionFromTrxOffToRxOn();
 					break;
 				case trxStateRxAackOn:
-					fAppTrxStateTransitionFromTrxOffToRxAackOn();
+					fPhyTrxStateTransitionFromTrxOffToRxAackOn();
 					break;
 				case trxStateTxAretOn:
-					fAppTrxStateTransitionFromTrxOffToTxAaretOn();
+					fPhyTrxStateTransitionFromTrxOffToTxAaretOn();
 					break;
 				case trxStateBusyTx:
-					fAppTrxStateTransitionFromTrxOffToPllOn(forcePllOn);
-					fAppTrxStateTransitionFromPllOnToBusyTx();
+					fPhyTrxStateTransitionFromTrxOffToPllOn(forcePllOn);
+					fPhyTrxStateTransitionFromPllOnToBusyTx();
 					break;
 				case trxStateBusyTxAret:
-					fAppTrxStateTransitionFromTrxOffToTxAaretOn();
-					fAppTrxStateTransitionFromTxAaretOnToBusyTxAret();
+					fPhyTrxStateTransitionFromTrxOffToTxAaretOn();
+					fPhyTrxStateTransitionFromTxAaretOnToBusyTxAret();
 					break;
 				default:
 					break;
@@ -146,31 +165,31 @@ bool fAppTrxStateTransition (eTrxState fromState, eTrxState toState, bool forceT
 			switch ((uint8_t) toState)
 			{
 				case trxStateTrxOff:
-					fAppTrxStateTransitionFromRxOnToTrxOff(forceTrxOff);
+					fPhyTrxStateTransitionFromRxOnToTrxOff(forceTrxOff);
 					break;
 				case trxStatePllOn:
-					fAppTrxStateTransitionFromRxOnToPllOn(forcePllOn);
+					fPhyTrxStateTransitionFromRxOnToPllOn(forcePllOn);
 					break;
 				case trxStateTxAretOn:
-					fAppTrxStateTransitionFromRxOnToPllOn(forcePllOn);
-					fAppTrxStateTransitionFromPllOnToTxAretOn();
+					fPhyTrxStateTransitionFromRxOnToPllOn(forcePllOn);
+					fPhyTrxStateTransitionFromPllOnToTxAretOn();
 					break;
 				case trxStateRxAackOn:
-					fAppTrxStateTransitionFromRxOnToPllOn(forcePllOn);
-					fAppTrxStateTransitionFromPllOnToRxAackOn();
+					fPhyTrxStateTransitionFromRxOnToPllOn(forcePllOn);
+					fPhyTrxStateTransitionFromPllOnToRxAackOn();
 					break;
 				case trxStateSleep:
-					fAppTrxStateTransitionFromRxOnToTrxOff(forceTrxOff);
-					fAppTrxStateTransitionFromTrxOffToSleep();
+					fPhyTrxStateTransitionFromRxOnToTrxOff(forceTrxOff);
+					fPhyTrxStateTransitionFromTrxOffToSleep();
 					break;
 				case trxStateBusyTx:
-					fAppTrxStateTransitionFromRxOnToPllOn(forcePllOn);
-					fAppTrxStateTransitionFromPllOnToBusyTx();
+					fPhyTrxStateTransitionFromRxOnToPllOn(forcePllOn);
+					fPhyTrxStateTransitionFromPllOnToBusyTx();
 					break;
 				case trxStateBusyTxAret:
-					fAppTrxStateTransitionFromRxOnToPllOn(forcePllOn);
-					fAppTrxStateTransitionFromPllOnToTxAretOn();
-					fAppTrxStateTransitionFromTxAaretOnToBusyTxAret();
+					fPhyTrxStateTransitionFromRxOnToPllOn(forcePllOn);
+					fPhyTrxStateTransitionFromPllOnToTxAretOn();
+					fPhyTrxStateTransitionFromTxAaretOnToBusyTxAret();
 					break;
 				default:
 					break;
@@ -180,27 +199,27 @@ bool fAppTrxStateTransition (eTrxState fromState, eTrxState toState, bool forceT
 			switch ((uint8_t) toState)
 			{
 				case trxStateTrxOff:
-					fAppTrxStateTransitionFromPllOnToTrxOff(forceTrxOff);
+					fPhyTrxStateTransitionFromPllOnToTrxOff(forceTrxOff);
 					break;
 				case trxStateBusyTx:
-					fAppTrxStateTransitionFromPllOnToBusyTx();
+					fPhyTrxStateTransitionFromPllOnToBusyTx();
 					break;
 				case trxStateRxAackOn:
-					fAppTrxStateTransitionFromPllOnToRxAackOn();
+					fPhyTrxStateTransitionFromPllOnToRxAackOn();
 					break;
 				case trxStateRxOn:
-					fAppTrxStateTransitionFromPllOnToRxOn();
+					fPhyTrxStateTransitionFromPllOnToRxOn();
 					break;
 				case trxStateTxAretOn:
-					fAppTrxStateTransitionFromPllOnToTxAretOn();
+					fPhyTrxStateTransitionFromPllOnToTxAretOn();
 					break;
 				case trxStateSleep:
-					fAppTrxStateTransitionFromPllOnToTrxOff(forceTrxOff);
-					fAppTrxStateTransitionFromTrxOffToSleep();
+					fPhyTrxStateTransitionFromPllOnToTrxOff(forceTrxOff);
+					fPhyTrxStateTransitionFromTrxOffToSleep();
 					break;
 				case trxStateBusyTxAret:
-					fAppTrxStateTransitionFromPllOnToTxAretOn();
-					fAppTrxStateTransitionFromTxAaretOnToBusyTxAret();
+					fPhyTrxStateTransitionFromPllOnToTxAretOn();
+					fPhyTrxStateTransitionFromTxAaretOnToBusyTxAret();
 					break;
 				default:
 					break;
@@ -210,25 +229,25 @@ bool fAppTrxStateTransition (eTrxState fromState, eTrxState toState, bool forceT
 			switch ((uint8_t) toState)
 			{
 				case trxStateTrxOff:
-					fAppTrxStateTransitionFromTxAaretOnToTrxOff(forceTrxOff);
+					fPhyTrxStateTransitionFromTxAaretOnToTrxOff(forceTrxOff);
 					break;
 				case trxStateBusyTxAret:
-					fAppTrxStateTransitionFromTxAaretOnToBusyTxAret();
+					fPhyTrxStateTransitionFromTxAaretOnToBusyTxAret();
 					break;
 				case trxStatePllOn:
-					fAppTrxStateTransitionFromTxAaretOnToPllOn(forcePllOn);
+					fPhyTrxStateTransitionFromTxAaretOnToPllOn(forcePllOn);
 					break;
 				case trxStateRxOn:
-					fAppTrxStateTransitionFromTxAaretOnToPllOn(forcePllOn);
-					fAppTrxStateTransitionFromPllOnToRxOn();
+					fPhyTrxStateTransitionFromTxAaretOnToPllOn(forcePllOn);
+					fPhyTrxStateTransitionFromPllOnToRxOn();
 					break;
 				case trxStateSleep:
-					fAppTrxStateTransitionFromTxAaretOnToTrxOff(forceTrxOff);
-					fAppTrxStateTransitionFromTrxOffToSleep();
+					fPhyTrxStateTransitionFromTxAaretOnToTrxOff(forceTrxOff);
+					fPhyTrxStateTransitionFromTrxOffToSleep();
 					break;
 				case trxStateBusyTx:
-					fAppTrxStateTransitionFromTxAaretOnToPllOn(forcePllOn);
-					fAppTrxStateTransitionFromPllOnToBusyTx();
+					fPhyTrxStateTransitionFromTxAaretOnToPllOn(forcePllOn);
+					fPhyTrxStateTransitionFromPllOnToBusyTx();
 					break;
 				default:
 					break;
@@ -238,27 +257,27 @@ bool fAppTrxStateTransition (eTrxState fromState, eTrxState toState, bool forceT
 			switch ((uint8_t) toState)
 			{
 				case trxStateTrxOff:
-					fAppTrxStateTransitionFromRxAackOnToTrxOff(forceTrxOff);
+					fPhyTrxStateTransitionFromRxAackOnToTrxOff(forceTrxOff);
 					break;
 				case trxStatePllOn:
-					fAppTrxStateTransitionFromRxAackOnToPllOn(forcePllOn);
+					fPhyTrxStateTransitionFromRxAackOnToPllOn(forcePllOn);
 					break;
 				case trxStateRxOn:
-					fAppTrxStateTransitionFromRxAackOnToPllOn(forcePllOn);
-					fAppTrxStateTransitionFromPllOnToRxOn();
+					fPhyTrxStateTransitionFromRxAackOnToPllOn(forcePllOn);
+					fPhyTrxStateTransitionFromPllOnToRxOn();
 					break;
 				case trxStateSleep:
-					fAppTrxStateTransitionFromRxAackOnToTrxOff(forceTrxOff);
-					fAppTrxStateTransitionFromTrxOffToSleep();
+					fPhyTrxStateTransitionFromRxAackOnToTrxOff(forceTrxOff);
+					fPhyTrxStateTransitionFromTrxOffToSleep();
 					break;
 				case trxStateBusyTx:
-					fAppTrxStateTransitionFromRxAackOnToPllOn(forcePllOn);
-					fAppTrxStateTransitionFromPllOnToBusyTx();
+					fPhyTrxStateTransitionFromRxAackOnToPllOn(forcePllOn);
+					fPhyTrxStateTransitionFromPllOnToBusyTx();
 					break;
 				case trxStateBusyTxAret:
-					fAppTrxStateTransitionFromRxAackOnToPllOn(forcePllOn);
-					fAppTrxStateTransitionFromPllOnToTxAretOn();
-					fAppTrxStateTransitionFromTxAaretOnToBusyTxAret();
+					fPhyTrxStateTransitionFromRxAackOnToPllOn(forcePllOn);
+					fPhyTrxStateTransitionFromPllOnToTxAretOn();
+					fPhyTrxStateTransitionFromTxAaretOnToBusyTxAret();
 					break;
 				default:
 					break;
@@ -276,7 +295,7 @@ bool fAppTrxStateTransition (eTrxState fromState, eTrxState toState, bool forceT
   *			
   */
 
-void fAppTrxStateTransitionFromResetToTrxOff(void)
+void fPhyTrxStateTransitionFromResetToTrxOff(void)
 {
 	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 
@@ -300,11 +319,13 @@ void fAppTrxStateTransitionFromResetToTrxOff(void)
   *			
   */
 
-void fAppTrxStateTransitionFromTrxOffToSleep (void)
+void fPhyTrxStateTransitionFromTrxOffToSleep (void)
 {
 	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 
 	TRXPR |= (1 << SLPTR);
+
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 
 	// If TRX_STATUS = 0x1F (STATE_TRANSITION_IN_PROGRESS) the radio transceiver
 	// is  on  a  state  transition.  Do  not  try  to  initiate  a  further  state  change  while  the  radio
@@ -321,12 +342,14 @@ void fAppTrxStateTransitionFromTrxOffToSleep (void)
   *			
   */
 
-void fAppTrxStateTransitionFromTrxOffToRxOn (void)
+void fPhyTrxStateTransitionFromTrxOffToRxOn (void)
 {
 	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 	TRX_STATE &= ~0x1F;
 
 	TRX_STATE |= CMD_RX_ON;
+
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 
 	// During  RX_ON  state  the  receiver  listens  for  incoming  frames.  After  detecting  a  valid
 	// synchronization  header (SHR), the receiver automatically enters the  BUSY_RX state. 
@@ -346,12 +369,23 @@ void fAppTrxStateTransitionFromTrxOffToRxOn (void)
   *			
   */
 
-void fAppTrxStateTransitionFromTrxOffToRxAackOn (void)
+void fPhyTrxStateTransitionFromTrxOffToRxAackOn (void)
 {
 	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 	TRX_STATE &= ~0x1F;
 
+	// Note that a state change request from TRX_OFF to RX_AACK_ON or TX_ARET_ON
+	// internally passes the state PLL_ON to initiate the radio transceiver. Thus the readiness
+	// to receive or transmit data is delayed accordingly. It is recommended to use interrupt
+	// TRX24_PLL_LOCK as an indicator
+
+	//System.trx.pllLockForExtended = false;
+
 	TRX_STATE |= CMD_RX_AACK_ON;
+
+	//while (System.trx.pllLockForExtended == false);
+
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 
 	// During  RX_ON  state  the  receiver  listens  for  incoming  frames.  After  detecting  a  valid
 	// synchronization  header (SHR), the receiver automatically enters the  BUSY_RX state.
@@ -371,7 +405,7 @@ void fAppTrxStateTransitionFromTrxOffToRxAackOn (void)
   *			
   */
 
-void fAppTrxStateTransitionFromTrxOffToPllOn (bool force)
+void fPhyTrxStateTransitionFromTrxOffToPllOn (bool force)
 {
 	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 	TRX_STATE &= ~0x1F;
@@ -383,6 +417,8 @@ void fAppTrxStateTransitionFromTrxOffToPllOn (bool force)
 	{
 		TRX_STATE |= CMD_PLL_ON;
 	}
+
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 
 	// If TRX_STATUS = 0x1F (STATE_TRANSITION_IN_PROGRESS) the radio transceiver
 	// is  on  a  state  transition.  Do  not  try  to  initiate  a  further  state  change  while  the  radio
@@ -399,12 +435,23 @@ void fAppTrxStateTransitionFromTrxOffToPllOn (bool force)
   *			
   */
 
-void fAppTrxStateTransitionFromTrxOffToTxAaretOn (void)
+void fPhyTrxStateTransitionFromTrxOffToTxAaretOn (void)
 {
 	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 	TRX_STATE &= ~0x1F;
 
+	// Note that a state change request from TRX_OFF to RX_AACK_ON or TX_ARET_ON
+	// internally passes the state PLL_ON to initiate the radio transceiver. Thus the readiness
+	// to receive or transmit data is delayed accordingly. It is recommended to use interrupt
+	// TRX24_PLL_LOCK as an indicator
+
+	//System.trx.pllLockForExtended = false;
+
 	TRX_STATE |= CMD_TX_ARET_ON;
+
+	//while (System.trx.pllLockForExtended == false);
+
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 
 	// If TRX_STATUS = 0x1F (STATE_TRANSITION_IN_PROGRESS) the radio transceiver
 	// is  on  a  state  transition.  Do  not  try  to  initiate  a  further  state  change  while  the  radio
@@ -421,11 +468,13 @@ void fAppTrxStateTransitionFromTrxOffToTxAaretOn (void)
   *			
   */
 
-void fAppTrxStateTransitionFromSleepToTrxOff (void)
+void fPhyTrxStateTransitionFromSleepToTrxOff (void)
 {
 	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 
 	TRXPR &= ~(1 << SLPTR);
+
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 
 	// Entering  the  TRX_OFF  state  from  radio  transceiver  SLEEP,  or  RESET  state  is
 	// indicated by the TRX24_AWAKE interrupt.
@@ -445,7 +494,7 @@ void fAppTrxStateTransitionFromSleepToTrxOff (void)
   *			
   */
 
-void fAppTrxStateTransitionFromPllOnToTrxOff (bool force)
+void fPhyTrxStateTransitionFromPllOnToTrxOff (bool force)
 {
 	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 	TRX_STATE &= ~0x1F;
@@ -457,6 +506,8 @@ void fAppTrxStateTransitionFromPllOnToTrxOff (bool force)
 	{
 		TRX_STATE |= CMD_TRX_OFF;
 	}
+
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 
 	// If TRX_STATUS = 0x1F (STATE_TRANSITION_IN_PROGRESS) the radio transceiver
 	// is  on  a  state  transition.  Do  not  try  to  initiate  a  further  state  change  while  the  radio
@@ -473,12 +524,14 @@ void fAppTrxStateTransitionFromPllOnToTrxOff (bool force)
   *			
   */
 
-void fAppTrxStateTransitionFromPllOnToRxOn (void)
+void fPhyTrxStateTransitionFromPllOnToRxOn (void)
 {
 	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 	TRX_STATE &= ~0x1F;
 
 	TRX_STATE |= CMD_RX_ON;
+
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 
 	// During  RX_ON  state  the  receiver  listens  for  incoming  frames.  After  detecting  a  valid
 	// synchronization  header (SHR), the receiver automatically enters the  BUSY_RX state.
@@ -498,12 +551,14 @@ void fAppTrxStateTransitionFromPllOnToRxOn (void)
   *			
   */
 
-void fAppTrxStateTransitionFromPllOnToBusyTx (void)
+void fPhyTrxStateTransitionFromPllOnToBusyTx (void)
 {
 	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 	TRX_STATE &= ~0x1F;
 
 	TRX_STATE |= CMD_TX_START;
+
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 
 	// If TRX_STATUS = 0x1F (STATE_TRANSITION_IN_PROGRESS) the radio transceiver
 	// is  on  a  state  transition.  Do  not  try  to  initiate  a  further  state  change  while  the  radio
@@ -520,12 +575,14 @@ void fAppTrxStateTransitionFromPllOnToBusyTx (void)
   *			
   */
 
-void fAppTrxStateTransitionFromPllOnToTxAretOn (void)
+void fPhyTrxStateTransitionFromPllOnToTxAretOn (void)
 {
 	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 	TRX_STATE &= ~0x1F;
 
 	TRX_STATE |= CMD_TX_ARET_ON;
+
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 
 	// If TRX_STATUS = 0x1F (STATE_TRANSITION_IN_PROGRESS) the radio transceiver
 	// is  on  a  state  transition.  Do  not  try  to  initiate  a  further  state  change  while  the  radio
@@ -542,12 +599,14 @@ void fAppTrxStateTransitionFromPllOnToTxAretOn (void)
   *			
   */
 
-void fAppTrxStateTransitionFromPllOnToRxAackOn (void)
+void fPhyTrxStateTransitionFromPllOnToRxAackOn (void)
 {
 	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 	TRX_STATE &= ~0x1F;
 
 	TRX_STATE |= CMD_RX_AACK_ON;
+
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 
 	// During  RX_ON  state  the  receiver  listens  for  incoming  frames.  After  detecting  a  valid
 	// synchronization  header (SHR), the receiver automatically enters the  BUSY_RX state.
@@ -567,7 +626,7 @@ void fAppTrxStateTransitionFromPllOnToRxAackOn (void)
   *			
   */
 
-void fAppTrxStateTransitionFromRxOnToTrxOff (bool force)
+void fPhyTrxStateTransitionFromRxOnToTrxOff (bool force)
 {
 	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 	TRX_STATE &= ~0x1F;
@@ -579,6 +638,8 @@ void fAppTrxStateTransitionFromRxOnToTrxOff (bool force)
 	{
 		TRX_STATE |= CMD_TRX_OFF;
 	}
+
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 
 	// If TRX_STATUS = 0x1F (STATE_TRANSITION_IN_PROGRESS) the radio transceiver
 	// is  on  a  state  transition.  Do  not  try  to  initiate  a  further  state  change  while  the  radio
@@ -595,7 +656,7 @@ void fAppTrxStateTransitionFromRxOnToTrxOff (bool force)
   *			
   */
 
-void fAppTrxStateTransitionFromRxOnToPllOn (bool force)
+void fPhyTrxStateTransitionFromRxOnToPllOn (bool force)
 {
 	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 	TRX_STATE &= ~0x1F;
@@ -607,6 +668,8 @@ void fAppTrxStateTransitionFromRxOnToPllOn (bool force)
 	{
 		TRX_STATE |= CMD_PLL_ON;
 	}
+
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 
 	// If TRX_STATUS = 0x1F (STATE_TRANSITION_IN_PROGRESS) the radio transceiver
 	// is  on  a  state  transition.  Do  not  try  to  initiate  a  further  state  change  while  the  radio
@@ -623,7 +686,7 @@ void fAppTrxStateTransitionFromRxOnToPllOn (bool force)
   *			
   */
 
-void fAppTrxStateTransitionFromRxAackOnToTrxOff (bool force)
+void fPhyTrxStateTransitionFromRxAackOnToTrxOff (bool force)
 {
 	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 	TRX_STATE &= ~0x1F;
@@ -635,6 +698,8 @@ void fAppTrxStateTransitionFromRxAackOnToTrxOff (bool force)
 	{
 		TRX_STATE |= CMD_TRX_OFF;
 	}
+
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 
 	// If TRX_STATUS = 0x1F (STATE_TRANSITION_IN_PROGRESS) the radio transceiver
 	// is  on  a  state  transition.  Do  not  try  to  initiate  a  further  state  change  while  the  radio
@@ -651,7 +716,7 @@ void fAppTrxStateTransitionFromRxAackOnToTrxOff (bool force)
   *			
   */
 
-void fAppTrxStateTransitionFromRxAackOnToPllOn (bool force)
+void fPhyTrxStateTransitionFromRxAackOnToPllOn (bool force)
 {
 	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 	TRX_STATE &= ~0x1F;
@@ -663,6 +728,8 @@ void fAppTrxStateTransitionFromRxAackOnToPllOn (bool force)
 	{
 		TRX_STATE |= CMD_PLL_ON;
 	}
+
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 
 	// If TRX_STATUS = 0x1F (STATE_TRANSITION_IN_PROGRESS) the radio transceiver
 	// is  on  a  state  transition.  Do  not  try  to  initiate  a  further  state  change  while  the  radio
@@ -679,7 +746,7 @@ void fAppTrxStateTransitionFromRxAackOnToPllOn (bool force)
   *			
   */
 
-void fAppTrxStateTransitionFromTxAaretOnToPllOn (bool force)
+void fPhyTrxStateTransitionFromTxAaretOnToPllOn (bool force)
 {
 	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 	TRX_STATE &= ~0x1F;
@@ -691,6 +758,8 @@ void fAppTrxStateTransitionFromTxAaretOnToPllOn (bool force)
 	{
 		TRX_STATE |= CMD_PLL_ON;
 	}
+
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 
 	// If TRX_STATUS = 0x1F (STATE_TRANSITION_IN_PROGRESS) the radio transceiver
 	// is  on  a  state  transition.  Do  not  try  to  initiate  a  further  state  change  while  the  radio
@@ -707,12 +776,14 @@ void fAppTrxStateTransitionFromTxAaretOnToPllOn (bool force)
   *			
   */
 
-void fAppTrxStateTransitionFromTxAaretOnToBusyTxAret (void)
+void fPhyTrxStateTransitionFromTxAaretOnToBusyTxAret (void)
 {
 	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 	TRX_STATE &= ~0x1F;
 
 	TRX_STATE |= CMD_TX_START;
+
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 
 	// If TRX_STATUS = 0x1F (STATE_TRANSITION_IN_PROGRESS) the radio transceiver
 	// is  on  a  state  transition.  Do  not  try  to  initiate  a  further  state  change  while  the  radio
@@ -729,7 +800,7 @@ void fAppTrxStateTransitionFromTxAaretOnToBusyTxAret (void)
   *			
   */
 
-void fAppTrxStateTransitionFromTxAaretOnToTrxOff (bool force)
+void fPhyTrxStateTransitionFromTxAaretOnToTrxOff (bool force)
 {
 	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 	TRX_STATE &= ~0x1F;
@@ -741,6 +812,8 @@ void fAppTrxStateTransitionFromTxAaretOnToTrxOff (bool force)
 	{
 		TRX_STATE |= CMD_TRX_OFF;
 	}
+
+	while ((TRX_STATUS & 0x1F) == STATE_TRANSITION_IN_PROGRESS);
 
 	// If TRX_STATUS = 0x1F (STATE_TRANSITION_IN_PROGRESS) the radio transceiver
 	// is  on  a  state  transition.  Do  not  try  to  initiate  a  further  state  change  while  the  radio

@@ -35,21 +35,34 @@ LINKER_SCRIPT_DEP:=
 SUBDIRS :=  \
 ../_inc \
 ../_inc/app \
+../_inc/mac \
+../_inc/apl \
+../_inc/nwk \
+../_inc/phy \
 ../_src \
 ../_misc \
-../_src/app
+../_src/app \
+../_src/mac \
+../_src/apl \
+../_src/nwk \
+../_src/phy
 
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS +=  \
 ../main.c \
-../_src/app/appTrx.c \
+../_src/apl/aplApi.c \
 ../_src/app/appSystemTimer.c \
-../_src/app/systemTimerInterrupts.c \
-../_src/app/trxInterrupts.c \
-../_src/app/trxStateTransitions.c \
-../_src/macLayer.c \
-../_src/nwkLayer.c
+../_src/app/appSystemTimerInterrupts.c \
+../_src/mac/macApi.c \
+../_src/mac/macLayer.c \
+../_src/nwk/nwkApi.c \
+../_src/nwk/nwkLayer.c \
+../_src/phy/phyApi.c \
+../_src/phy/phyFifo.c \
+../_src/phy/phyTrx.c \
+../_src/phy/phyTrxInterrupts.c \
+../_src/phy/phyTrxStateTransitions.c
 
 
 PREPROCESSING_SRCS += 
@@ -60,43 +73,63 @@ ASM_SRCS +=
 
 OBJS +=  \
 main.o \
-_src/app/appTrx.o \
+_src/apl/aplApi.o \
 _src/app/appSystemTimer.o \
-_src/app/systemTimerInterrupts.o \
-_src/app/trxInterrupts.o \
-_src/app/trxStateTransitions.o \
-_src/macLayer.o \
-_src/nwkLayer.o
+_src/app/appSystemTimerInterrupts.o \
+_src/mac/macApi.o \
+_src/mac/macLayer.o \
+_src/nwk/nwkApi.o \
+_src/nwk/nwkLayer.o \
+_src/phy/phyApi.o \
+_src/phy/phyFifo.o \
+_src/phy/phyTrx.o \
+_src/phy/phyTrxInterrupts.o \
+_src/phy/phyTrxStateTransitions.o
 
 OBJS_AS_ARGS +=  \
 main.o \
-_src/app/appTrx.o \
+_src/apl/aplApi.o \
 _src/app/appSystemTimer.o \
-_src/app/systemTimerInterrupts.o \
-_src/app/trxInterrupts.o \
-_src/app/trxStateTransitions.o \
-_src/macLayer.o \
-_src/nwkLayer.o
+_src/app/appSystemTimerInterrupts.o \
+_src/mac/macApi.o \
+_src/mac/macLayer.o \
+_src/nwk/nwkApi.o \
+_src/nwk/nwkLayer.o \
+_src/phy/phyApi.o \
+_src/phy/phyFifo.o \
+_src/phy/phyTrx.o \
+_src/phy/phyTrxInterrupts.o \
+_src/phy/phyTrxStateTransitions.o
 
 C_DEPS +=  \
 main.d \
-_src/app/appTrx.d \
+_src/apl/aplApi.d \
 _src/app/appSystemTimer.d \
-_src/app/systemTimerInterrupts.d \
-_src/app/trxInterrupts.d \
-_src/app/trxStateTransitions.d \
-_src/macLayer.d \
-_src/nwkLayer.d
+_src/app/appSystemTimerInterrupts.d \
+_src/mac/macApi.d \
+_src/mac/macLayer.d \
+_src/nwk/nwkApi.d \
+_src/nwk/nwkLayer.d \
+_src/phy/phyApi.d \
+_src/phy/phyFifo.d \
+_src/phy/phyTrx.d \
+_src/phy/phyTrxInterrupts.d \
+_src/phy/phyTrxStateTransitions.d
 
 C_DEPS_AS_ARGS +=  \
 main.d \
-_src/app/appTrx.d \
+_src/apl/aplApi.d \
 _src/app/appSystemTimer.d \
-_src/app/systemTimerInterrupts.d \
-_src/app/trxInterrupts.d \
-_src/app/trxStateTransitions.d \
-_src/macLayer.d \
-_src/nwkLayer.d
+_src/app/appSystemTimerInterrupts.d \
+_src/mac/macApi.d \
+_src/mac/macLayer.d \
+_src/nwk/nwkApi.d \
+_src/nwk/nwkLayer.d \
+_src/phy/phyApi.d \
+_src/phy/phyFifo.d \
+_src/phy/phyTrx.d \
+_src/phy/phyTrxInterrupts.d \
+_src/phy/phyTrxStateTransitions.d
 
 OUTPUT_FILE_PATH +=zigbee_ffd.elf
 
@@ -129,7 +162,24 @@ LINKER_SCRIPT_DEP+=
 
 
 
+
+
+
+
+
+
+
+
+
+
 ./%.o: .././%.c
+	@echo Building file: $<
+	@echo Invoking: AVR/GNU C Compiler : 4.9.2
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.0.98\include" -I"../../../common/_misc" -I".."  -O0 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -mrelax -g2 -Wall -mmcu=atmega128rfa1 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.0.98\gcc\dev\atmega128rfa1" -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
+_src/apl/%.o: ../_src/apl/%.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : 4.9.2
 	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.0.98\include" -I"../../../common/_misc" -I".."  -O0 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -mrelax -g2 -Wall -mmcu=atmega128rfa1 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.0.98\gcc\dev\atmega128rfa1" -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
@@ -143,7 +193,21 @@ _src/app/%.o: ../_src/app/%.c
 	@echo Finished building: $<
 	
 
-_src/%.o: ../_src/%.c
+_src/mac/%.o: ../_src/mac/%.c
+	@echo Building file: $<
+	@echo Invoking: AVR/GNU C Compiler : 4.9.2
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.0.98\include" -I"../../../common/_misc" -I".."  -O0 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -mrelax -g2 -Wall -mmcu=atmega128rfa1 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.0.98\gcc\dev\atmega128rfa1" -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
+_src/nwk/%.o: ../_src/nwk/%.c
+	@echo Building file: $<
+	@echo Invoking: AVR/GNU C Compiler : 4.9.2
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.0.98\include" -I"../../../common/_misc" -I".."  -O0 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -mrelax -g2 -Wall -mmcu=atmega128rfa1 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.0.98\gcc\dev\atmega128rfa1" -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
+_src/phy/%.o: ../_src/phy/%.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : 4.9.2
 	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.0.98\include" -I"../../../common/_misc" -I".."  -O0 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -mrelax -g2 -Wall -mmcu=atmega128rfa1 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.0.98\gcc\dev\atmega128rfa1" -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 

@@ -60,6 +60,7 @@ C_SRCS +=  \
 ../_src/nwk/nwkLayer.c \
 ../_src/phy/phyApi.c \
 ../_src/phy/phyFifo.c \
+../_src/phy/phyLayer.c \
 ../_src/phy/phyTrx.c \
 ../_src/phy/phyTrxInterrupts.c \
 ../_src/phy/phyTrxStateTransitions.c
@@ -82,6 +83,7 @@ _src/nwk/nwkApi.o \
 _src/nwk/nwkLayer.o \
 _src/phy/phyApi.o \
 _src/phy/phyFifo.o \
+_src/phy/phyLayer.o \
 _src/phy/phyTrx.o \
 _src/phy/phyTrxInterrupts.o \
 _src/phy/phyTrxStateTransitions.o
@@ -97,6 +99,7 @@ _src/nwk/nwkApi.o \
 _src/nwk/nwkLayer.o \
 _src/phy/phyApi.o \
 _src/phy/phyFifo.o \
+_src/phy/phyLayer.o \
 _src/phy/phyTrx.o \
 _src/phy/phyTrxInterrupts.o \
 _src/phy/phyTrxStateTransitions.o
@@ -112,6 +115,7 @@ _src/nwk/nwkApi.d \
 _src/nwk/nwkLayer.d \
 _src/phy/phyApi.d \
 _src/phy/phyFifo.d \
+_src/phy/phyLayer.d \
 _src/phy/phyTrx.d \
 _src/phy/phyTrxInterrupts.d \
 _src/phy/phyTrxStateTransitions.d
@@ -127,6 +131,7 @@ _src/nwk/nwkApi.d \
 _src/nwk/nwkLayer.d \
 _src/phy/phyApi.d \
 _src/phy/phyFifo.d \
+_src/phy/phyLayer.d \
 _src/phy/phyTrx.d \
 _src/phy/phyTrxInterrupts.d \
 _src/phy/phyTrxStateTransitions.d
@@ -145,6 +150,8 @@ LINKER_SCRIPT_DEP+=
 
 
 # AVR32/GNU C Compiler
+
+
 
 
 

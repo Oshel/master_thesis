@@ -89,6 +89,51 @@ typedef enum {
 	nwkStartStatusStartupFailure
 } eNwkStartStatus;
 
+typedef enum {
+	nwkDstAddrModeNoAddress = 0,
+	nwkDstAddrMode16BitMulticast,
+	nwkDstAddrMode16BitIndividual
+} eNwkDstAddrMode;
+
+typedef enum {
+	nwkStatusCodeNoRouteAvailable = 0,
+	nwkStatusCodeTreeLinkFailure,
+	nwkStatusCodeNonTreeLinkFailure,
+	nwkStatusCodeLowBatteryLevel,
+	nwkStatusCodeNoRoutingCapacity,
+	nwkStatusCodeNoIndirectCapacity,
+	nwkStatusCodeIndirectTransactionExpiry,
+	nwkStatusCodeTargetDeviceUnavailable,
+	nwkStatusCodeTargetAdressUnallocated,
+	nwkStatusCodeParentLinkFailure,
+	nwkStatusCodeValidateRoute,
+	nwkStatusCodeSourceRouteFailure,
+	nwkStatusCodeManyToOneRouteFailure,
+	nwkStatusCodeAddressConflict,
+	nwkStatusCodeVerifyAddresses,
+	nwkStatusCodePanIdentifierUpdate,
+	nwkStatusCodeNetworkAdressUpdate,
+	nwkStatusCodeBadFrameCounter,
+	nwkStatusCodeBadKeySequenceNumber
+} eNwkStatusCode;
+
+typedef enum {
+	nwkStatusRouteDiscoverySuccess,
+	nwkStatusRouteDiscoveryTransactionOverflow,
+	nwkStatusRouteDiscoveryTransactionExpired,
+	nwkStatusRouteDiscoveryChannelAccessFailure,
+	nwkStatusRouteDiscoveryInvalidAddress,
+	nwkStatusRouteDiscoveryInvalidGts,
+	nwkStatusRouteDiscoveryNoAck,
+	nwkStatusRouteDiscoveryCounterError,
+	nwkStatusRouteDiscoveryFrameTooLong,
+	nwkStatusRouteDiscoveryUnavailableKey,
+	nwkStatusRouteDiscoveryUnsupportedSecurity,
+	nwkStatusRouteDiscoveryInvalidParameter,
+	nwkStatusRouteDiscoveryInvalidRequest,
+	nwkStatusRouteDiscoveryRouteError
+} eNwkStatusRouteDiscovery;
+
 // Not ZigBee Specification compatible!
 typedef enum {
 	nwkJoinStatusSuccess,
@@ -153,14 +198,18 @@ typedef struct {
 	//PermitJoining
 	//RouterCapacity
 	//EndDeviceCapacity
+
+	// Added
+
+	uint16_t			PANId;
+	uint16_t			ShortAdd;
+	uint8_t				Lqi;
 } tNwkNetworkDescriptor;
 
 typedef struct {
 	bool				deviceType;
 	bool				powerSource;
 	bool				receiverOnWhenIdle;
-	bool				reserved0;
-	bool				reserved1;
 	bool				securityCapability;
 	bool				allocateAddress;
 } tNwkCapabilityInformation;
@@ -336,8 +385,8 @@ typedef struct {
 } tNwkConfirmSet;
 
 typedef struct {
-	Status,
-	eNwkStatusCode		NetworkStatusCode
+	eNwkStatusRouteDiscovery	Status;
+	eNwkStatusCode				NetworkStatusCode;
 } tNwkConfirmRouteDiscovery;
 
 #endif /* NWKAPI_H_ */

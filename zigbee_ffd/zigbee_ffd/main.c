@@ -11,25 +11,12 @@ tSystem System;
 
 int main(void)
 {
-	//tMacMessage msg;
-	//uint8_t buf[3] = "ALA";
-
-	//msg.macFcf.macFrameType = macFrameTypeData;
-	//msg.macFcf.macSecurity = macSecurityDisabled;
-	//msg.macFcf.macFramePending = macFramePendingNo;
-	//msg.macFcf.macAckRequest = macAckRequestNo;
-	//msg.macFcf.macIntraPan = macIntraPanNo;
-	//msg.macFcf.macDestAddMode = macDestAddModeAdd16Bit;
-	//msg.macFcf.macFrameVersion = macFrameVersionIeee2006;
-	//msg.macFcf.macSrcAddMode = macSrcAddModeAdd16Bit;
-	//msg.macDestPan = 0x0002;
-	//msg.macDestAdd = 0x0002;
-	//msg.macSrcPan = 0x0001;
-	//msg.macSrcAdd = 0x0001;
-
-	DDRG |= (1 << 2);
-
 	fAppSystemTimerInit();
+	
+	// 3.5dBm Tx Power
+	// 11 Channel, 2.405 GHz
+	// Short add = 0x0001
+	// PAN ID = 0x0001
 	fPhyTrxInit();
 
 	fPhyTrxStateCheck();
@@ -37,14 +24,90 @@ int main(void)
 
 	sei();
 
+	//{
+		//tNwkRequestNetworkDiscovery networkDiscoveryRequest;
+		//tNwkConfirmNetworkDiscovery networkDiscoveryConfirm;
+		//networkDiscoveryRequest.ScanChannels = (0xFFFFFFFF) & (1 << 11);
+		//networkDiscoveryRequest.ScanDuration = 100;
+//
+		//fNwkApiRequestConfirm(&networkDiscoveryRequest, &networkDiscoveryConfirm, nwkRequestNetworkDiscovery, nwkConfirmNetworkDiscovery);
+//
+		//if (networkDiscoveryConfirm.Status == nwkStartStatusSuccess)
+		//{
+			//// Join
+//
+			//tNwkRequestJoin joinRequest;
+			//tNwkConfirmJoin joinConfirm;
+			//
+			//joinRequest.CapabilityInformation.allocateAddress = System.nwk.nib.nwkCapabilityInformation.allocateAddress;
+			//joinRequest.CapabilityInformation.deviceType = System.nwk.nib.nwkCapabilityInformation.deviceType;
+			//joinRequest.CapabilityInformation.powerSource = System.nwk.nib.nwkCapabilityInformation.powerSource;
+			//joinRequest.CapabilityInformation.receiverOnWhenIdle = System.nwk.nib.nwkCapabilityInformation.receiverOnWhenIdle;
+			//joinRequest.CapabilityInformation.securityCapability = System.nwk.nib.nwkCapabilityInformation.securityCapability;
+//
+			//joinRequest.ScanChannels = (0xFFFFFFFF) & (1 << 11);
+//
+			//joinRequest.ScanDuration = 10;
+//
+			//// Search for highest LQI PAN
+			//uint8_t i, highestLqi;
+			//for (i = 0; i < networkDiscoveryConfirm.NetworkCount; i++)
+			//{	
+				//if (i == 0)
+				//{
+					//highestLqi = 0;
+				//} else {
+					//if (networkDiscoveryConfirm.networkDescriptor[i].Lqi > networkDiscoveryConfirm.networkDescriptor[highestLqi].Lqi)
+					//{
+						//highestLqi = i;
+					//}
+				//}
+			//}
+//
+			//// Join to the PAN with highest LQI
+			//joinRequest.PANId = networkDiscoveryConfirm.networkDescriptor[highestLqi].PANId;
+			//
+			//fNwkApiRequestConfirm(&joinRequest, &joinConfirm, nwkRequestJoin, nwkConfirmJoin);
+//
+			//// TODO ASSOCIATION PROCEDURE
+//
+			//tNwkRequestStartRouter startRouterRequest;
+			//tNwkConfirmStartRouter startRouterConfirm;
+//
+			//fNwkApiRequestConfirm(&startRouterRequest, &startRouterConfirm, nwkRequestStartRouter, nwkConfirmStartRouter);
+//
+		//} else if (networkDiscoveryConfirm.Status == nwkScanStatusNoBeacon)
+		//{
+			//// Create network
+//
+			//tNwkRequestNetworkFormation networkFormationRequest;
+			//tNwkConfirmNetworkFormation networkFormationConfirm;
+//
+			//networkFormationRequest.ScanChannels = (0xFFFFFFFF) & (1 << 11);
+			//networkFormationRequest.ScanDuration = 10;
+//
+			//fNwkApiRequestConfirm(&networkFormationRequest, &networkFormationConfirm, nwkRequestNetworkFormation, nwkConfirmNetworkFormation);
+		//}
+	//}
+
+	uint8_t i = 0;
     while (1) 
     {
 		if (fPhyFifoTakeCheck())
 		{
 			tPhyFifoMessage* pointer = fPhyFifoTake();
+			macReceiveMessage(pointer, pointer->phyFifoMessageLength, 0);
 			DDRG ^= (1 << 2);
 		}
 		
+		if (System.TimeOutMs.test == 0)
+		{
+			System.TimeOutMs.test = 1000;
+
+			fMacPrepareAssociationRequest();
+
+			DDRG ^= (1 << 2);
+		}
     }
 }
 
@@ -57,7 +120,7 @@ int main(void)
 
 uint16_t fMainGetRandomShort (void)
 {
-	return System.TimeOutMs.random;
+	return System.randomNumber;
 }
 
 /**	

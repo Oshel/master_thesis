@@ -113,7 +113,7 @@ typedef enum {
 } eMacAssociationStatus;
 
 typedef enum {
-	macStartStatusSuccess,
+	macStartStatusSuccess = 0,
 	macStartStatusNoShortAddress,
 	macStartStatusSuperframeOverlap,
 	macStartStatusTrackingOff,
@@ -124,6 +124,14 @@ typedef enum {
 	macStartStatusUnsupportedSecurity,
 	macStartStatusChannelAccessFailure
 } eMacStartStatus;
+
+typedef enum {
+	macSetStatusSuccess = 0,
+	macSetStatusReadOnly,
+	macSetStatusUnsupportedAttribute,
+	macSetStatusInvalidIndex,
+	macSetStatusInvalidParameter
+} eMacSetStatus;
 
  /**	
 * @brief: MAC overall sub-frame formats
@@ -154,8 +162,6 @@ typedef struct {
 	bool				deviceType;
 	bool				powerSource;
 	bool				receiverOnWhenIdle;
-	bool				reserved0;
-	bool				reserved1;
 	bool				securityCapability;
 	bool				allocateAddress;
 } tMacCapabilityInformation;
@@ -168,7 +174,16 @@ typedef struct {
   */
 
 typedef struct {
-
+	uint8_t						ChannelNumber;
+	//ChannelPage;
+	//CoordAddrMode;	// Always 16-bit
+	uint16_t					CoordPANId;
+	uint16_t					CoordAddress;
+	tMacCapabilityInformation	CapabilityInformation;
+	//SecurityLevel;
+	//KeyIdMode;
+	//KeySource;
+	//KeyIndex;
 } tMacRequestAssociate;
 
 typedef struct {
@@ -203,7 +218,8 @@ typedef struct {
 } tMacRequestScan;
 
 typedef struct {
-
+	uint8_t *			PIBAttributeNamePointer;
+	void *				PIBAttributeValue;
 } tMacRequestSet;
 
 typedef struct {
@@ -224,6 +240,10 @@ typedef struct {
 	//BeaconKeyIdMode,
 	//BeaconKeySource,
 	//BeaconKeyIndex
+
+	// Added
+
+	uint16_t			shortAdd;
 } tMacRequestStart;
 
 typedef struct {
@@ -381,7 +401,9 @@ typedef struct {
 } tMacConfirmScan;
 
 typedef struct {
-
+	eMacSetStatus		status;
+	//uint8_t *			PIBAttributePointer;
+	//uint8_t				PIBAttributeNameLength;
 } tMacConfirmSet;
 
 typedef struct {
@@ -411,5 +433,11 @@ typedef struct {
 typedef struct {
 
 } tMacConfirmPurge;
+
+void fMacApiRequestConfirm (
+	void * request,
+	void * confirm,
+	eMacRequestType requestType,
+	eMacConfirmType confirmType);
 
 #endif /* MACAPI_H_ */

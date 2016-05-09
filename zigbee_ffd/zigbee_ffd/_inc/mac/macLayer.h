@@ -9,6 +9,8 @@
 #ifndef MACLAYER_H_
 #define MACLAYER_H_
 
+#include "_inc/mac/macApi.h"
+
  /**	
 * @brief: MAC sublayer constans (p. 145)
   @param: 
@@ -476,7 +478,8 @@ extern void fMacPrepareAssociationResponse (
 
 extern void fMacPrepareAssociationRequest (
 	uint16_t destinationPan,
-	uint16_t destinationAddress);
+	uint16_t destinationAddress,
+	tMacCapabilityInformation * capabilityInformation);
 
 extern void fMacPrepareBeaconRequest (void);
 

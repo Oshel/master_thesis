@@ -21,7 +21,7 @@ ISR(TIMER0_COMPA_vect)
 
 	pointer = (uint16_t*) &System.TimeOutMs;
 
-	System.TimeOutMs.random++;
+	System.randomNumber++;
 
 	for (i = sizeof(System.TimeOutMs); i > 0; i = i - 2, pointer++) 
 	{

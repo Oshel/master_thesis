@@ -221,7 +221,7 @@ void fMacMessageMsduDecode (
 void macReceiveMessage (
 	tPhyFifoMessage * buffer,
 	uint8_t bufferLength,
-	uint8_t layerOffset)
+	uint8_t prevLayerOffset)
 {
 	uint8_t mhrOffset, msduOffset;
 
@@ -230,29 +230,33 @@ void macReceiveMessage (
 	mhrOffset = 2 + 1; 
 	uint16_t srcPan, srcAdd, dstPan, dstAdd;
 
-	if (fMacGetFcfDestAddMode(buffer->phyFifoMessage + layerOffset) == macDestAddModeAdd16Bit)
+	//DEBUG
+	uint8_t destMode = fMacGetFcfDestAddMode(buffer->phyFifoMessage + prevLayerOffset);
+	//GUBED
+
+	if (fMacGetFcfDestAddMode(buffer->phyFifoMessage + prevLayerOffset) == macDestAddModeAdd16Bit)
 	{
-		mhrOffset += 2;
-		dstPan = fMacGetAfAddressPanDestination(buffer->phyFifoMessage + layerOffset, macDestAddModeAdd16Bit, fMacGetFcfSrcAddMode(buffer->phyFifoMessage + layerOffset));
-		dstAdd = fMacGetAfAddressShortDestination(buffer->phyFifoMessage + layerOffset, macDestAddModeAdd16Bit, fMacGetFcfSrcAddMode(buffer->phyFifoMessage + layerOffset));
+		mhrOffset += 4;
+		dstPan = fMacGetAfAddressPanDestination(buffer->phyFifoMessage + prevLayerOffset, macDestAddModeAdd16Bit, fMacGetFcfSrcAddMode(buffer->phyFifoMessage + prevLayerOffset));
+		dstAdd = fMacGetAfAddressShortDestination(buffer->phyFifoMessage + prevLayerOffset, macDestAddModeAdd16Bit, fMacGetFcfSrcAddMode(buffer->phyFifoMessage + prevLayerOffset));
 	}
 
-	if (fMacGetFcfSrcAddMode(buffer->phyFifoMessage + layerOffset) == macSrcAddModeAdd16Bit)
+	if (fMacGetFcfSrcAddMode(buffer->phyFifoMessage + prevLayerOffset) == macSrcAddModeAdd16Bit)
 	{
-		mhrOffset += 2;
-		srcPan = fMacGetAfAddressPanSource(buffer->phyFifoMessage + layerOffset, fMacGetFcfDestAddMode(buffer->phyFifoMessage + layerOffset), macSrcAddModeAdd16Bit);
-		srcAdd = fMacGetAfAddressShortSource(buffer->phyFifoMessage + layerOffset, fMacGetFcfDestAddMode(buffer->phyFifoMessage + layerOffset), macSrcAddModeAdd16Bit);
+		mhrOffset += 4;
+		srcPan = fMacGetAfAddressPanSource(buffer->phyFifoMessage + prevLayerOffset, fMacGetFcfDestAddMode(buffer->phyFifoMessage + prevLayerOffset), macSrcAddModeAdd16Bit);
+		srcAdd = fMacGetAfAddressShortSource(buffer->phyFifoMessage + prevLayerOffset, fMacGetFcfDestAddMode(buffer->phyFifoMessage + prevLayerOffset), macSrcAddModeAdd16Bit);
 	}
 
 	msduOffset = mhrOffset;
 
-	uint8_t frameType = (uint8_t) fMacGetFcfFrameType(buffer->phyFifoMessage + layerOffset);
+	uint8_t frameType = (uint8_t) fMacGetFcfFrameType(buffer->phyFifoMessage + prevLayerOffset);
 
 	if (frameType == (uint8_t)macFrameTypeMacCommand)
 	{
 		msduOffset += 1;
 
-		uint8_t commandIdentifier = (uint8_t) fMacGetMsduCommandIdentifier(buffer->phyFifoMessage + layerOffset, mhrOffset);
+		uint8_t commandIdentifier = (uint8_t) fMacGetMsduCommandIdentifier(buffer->phyFifoMessage + prevLayerOffset, mhrOffset);
 
 		if (commandIdentifier == (uint8_t)commandIdentifierAssociationRequest)
 		{
@@ -338,7 +342,7 @@ void macReceiveMessage (
 eMacFrameType fMacGetFcfFrameType (
 	uint8_t * buffer)
 {
-	return ((*(buffer + MAC_POSITION_FCF) >> MAC_POSITION_FCF_FRAME_TYPE) && 0x07);
+	return ((*(buffer + MAC_POSITION_FCF) >> MAC_POSITION_FCF_FRAME_TYPE) & 0x07);
 }
 
 /**	
@@ -351,7 +355,7 @@ eMacFrameType fMacGetFcfFrameType (
 eMacAckRequest fMacGetFcfAckRequest (
 	uint8_t * buffer)
 {
-	return ((*(buffer + MAC_POSITION_FCF) >> MAC_POSITION_FCF_ACK_REQUEST) && 0x01);
+	return ((*(buffer + MAC_POSITION_FCF) >> MAC_POSITION_FCF_ACK_REQUEST) & 0x01);
 }
 
 /**	
@@ -364,7 +368,7 @@ eMacAckRequest fMacGetFcfAckRequest (
 eMacDestAddMode fMacGetFcfDestAddMode (
 	uint8_t * buffer)
 {
-	return ((*(buffer + MAC_POSITION_FCF + 1) >> MAC_POSITION_FCF_DEST_ADD_MODE) && 0x03);
+	return ((*(buffer + MAC_POSITION_FCF + 1) >> MAC_POSITION_FCF_DEST_ADD_MODE) & 0x03);
 }
 
 /**	
@@ -377,7 +381,7 @@ eMacDestAddMode fMacGetFcfDestAddMode (
 eMacSrcAddMode fMacGetFcfSrcAddMode (
 	uint8_t * buffer)
 {
-	return ((*(buffer + MAC_POSITION_FCF + 1) >> MAC_POSITION_FCF_SRC_ADD_MODE) && 0x03);
+	return ((*(buffer + MAC_POSITION_FCF + 1) >> MAC_POSITION_FCF_SRC_ADD_MODE) & 0x03);
 }
 
 /**	
@@ -592,7 +596,8 @@ void fMacPrepareAssociationResponse (
 
 void fMacPrepareAssociationRequest (
 	uint16_t destinationPan,
-	uint16_t destinationAddress)
+	uint16_t destinationAddress,
+	tMacCapabilityInformation * capabilityInformation)
 {
 	tMacMhr mhr;
 	tMacFrameTypeCommandAssociationRequest command;
@@ -623,11 +628,11 @@ void fMacPrepareAssociationRequest (
 	
 	fMacPrepareMhr(&mhr, workingBuffer, &length);
 
-	command.cap.deviceType = true;				// FFD
-	command.cap.powerSource = true;				// not from battery
-	command.cap.rxOnIdle = true;				// receive all the time
-	command.cap.securityCapability = false;		// not encrypted
-	command.cap.allocateAddress = true;			// wants to get an address
+	command.cap.deviceType = capabilityInformation->deviceType;						// FFD
+	command.cap.powerSource = capabilityInformation->powerSource;					// not from battery
+	command.cap.rxOnIdle = capabilityInformation->receiverOnWhenIdle;				// receive all the time
+	command.cap.securityCapability = capabilityInformation->securityCapability;		// not encrypted
+	command.cap.allocateAddress = capabilityInformation->allocateAddress;			// wants to get an address
 
 	fMacPreparePayload(macFrameTypeMacCommand, &command, commandIdentifierAssociationRequest, workingBuffer, &length);
 

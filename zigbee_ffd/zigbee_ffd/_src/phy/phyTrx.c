@@ -90,14 +90,14 @@ void fPhyTrxInit(void)
 	uint8_t buffer;
 
 	fPhyTrxSetPower(trxPowerLevelP35dBm);						// -Set power 3.5 dBm (maximum one)
-	fPhyTrxSetChannel(trxChannel2440MHz);						// -Set channel to 2440 MHz
+	fPhyTrxSetChannel(trxChannel2405MHz);						// -Set channel to 2440 MHz
 	fPhyTrxSetCcaMode(trxCcaModeCsAndEd);						// -Set CCA to carrier sense and energy detection
 	fPhyTrxSetCcaEdThresh(-90);									// -Set ED for CCA on -90 dBm
 	fPhyTrxSetReceiversSensivity(trxReceiverSensivityNone);		// -All frames with a valid SHR and PHR are received
 
 	fPhyTrxSetExtendedTypeDevice(phyTypeDeviceRouter,
-								 0x0002,
-								 0x0002,
+								 0x0001,
+								 0x0001,
 								 0x00000000);
 
 	// Reset values

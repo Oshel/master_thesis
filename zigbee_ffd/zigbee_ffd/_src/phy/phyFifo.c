@@ -111,6 +111,8 @@ void fPhyFifoHeadAdd (void)
 
 bool fPhyFifoTakeCheck (void)
 {
+	fPhyTrxStateTransition(fPhyTrxStateCheck(), trxStateRxAackOn , false, false);
+
 	if (System.phy.fifo.phyFifoHead != System.phy.fifo.phyFifoTail)
 	{
 		return true;

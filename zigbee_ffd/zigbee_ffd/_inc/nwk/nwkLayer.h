@@ -9,7 +9,7 @@
 #ifndef NWKLAYER_H_
 #define NWKLAYER_H_
 
-#include "nwk/nwkApi.h"
+#include "nwkApi.h"
 
  /**	
 * @brief: NWK sublayer constans
@@ -51,7 +51,7 @@ typedef struct {
 	//nwkReportConstantCost
 	//nwkRouteTable					// TODO
 	//nwkSymLink
-	//nwkCapabilityInformation
+	tNwkCapabilityInformation		nwkCapabilityInformation;
 	//nwkAddrAlloc
 	//nwkUseTreeRouting
 	//nwkManagerAddr
@@ -123,7 +123,7 @@ typedef enum {
 } eNwkFcfFrameType;
 
 typedef enum {
-	nwkProtocolVersion = 0;
+	nwkProtocolVersion = 0
 } eNwkFcfProtocolVersion;
 
 typedef enum {

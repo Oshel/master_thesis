@@ -16,6 +16,7 @@
 #include "_inc/phy/phyTrx.h"
 #include "_inc/phy/phyTrxStateTransitions.h"
 #include "_inc/phy/phyFifo.h"
+#include "_inc/phy/phyLayer.h"
 
 #include "_inc/mac/macLayer.h"
 #include "_inc/mac/macApi.h"
@@ -26,7 +27,6 @@
 #include "_inc/app/appSystemTimer.h"
 
 typedef struct {
-	uint16_t						random;
 	uint16_t						test;
 	uint16_t						scanDuration;
 } tTimeOutMs;
@@ -41,6 +41,7 @@ typedef struct {
 	uint8_t							txBuf[127];
 	uint8_t							txBufLength;
 	tPhyFlags						flags;
+	tPhyPib							pib;
 } tPhy;
 
 typedef struct {
@@ -61,6 +62,8 @@ typedef struct {
 	//tAps							aps;
 
 	tTimeOutMs						TimeOutMs;
+
+	uint16_t						randomNumber;
 } tSystem;
 
 extern tSystem System;

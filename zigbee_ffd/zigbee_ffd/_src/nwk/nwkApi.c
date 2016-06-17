@@ -183,6 +183,7 @@ void fNwkApiRequestConfirm (
 		}
 		
 		confirmPointer->Status = nwkStartStatusSuccess;
+
 	} else if (requestType == nwkRequestJoin)
 	{
 		tNwkRequestJoin * requestPointer = request;
@@ -322,9 +323,13 @@ void fMacApiIndicationResponse (
 	if (indicationType == macIndicationTypeAssociate)
 	{
 		tMacIndicationAssociate *indicationPointer = indication;
-		tMacResponseAssociate *reponsePointer = response;
+		tMacResponseAssociate *responsePointer = response;
 
-		// join indication
+		responsePointer->AssocShortAddress = System.randomNumber;
+
+		// TODO associate adresses in a better maneer
+
+		responsePointer->status = macAssociationStatusSuccess;
 
 	} else if (indicationType == macIndicationTypeBeaconNotify)
 	{

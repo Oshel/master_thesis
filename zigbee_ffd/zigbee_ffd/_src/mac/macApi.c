@@ -144,9 +144,7 @@ void fMacApiRequestConfirm (
 		fPhyTrxSetSuspendReceiving(true);			// Suspend the receiving to not get any frame while flushing
 		fPhyFifoFlush();							// Clear the FIFO
 		uint16_t savePan = System.mac.pib.macPANId;	// Save current PAN
-		fPhyTrxSetAddPan(0xFFFF);					//  MAC sublayer shall store the value of macPANId and
-													// then set it to 0xffff for the duration of the scan. This enables the receive filter to accept all beacons rather
-													// than just the beacons from its current PAN, as described in 5.1.6.2
+		fPhyTrxSetAddPan(requestPointer->CoordPANId);					
 		fPhyTrxSetSuspendReceiving(false);			// Start receiving
 
 		fMacPrepareAssociationRequest(requestPointer->CoordPANId, requestPointer->CoordAddress, &requestPointer->CapabilityInformation);

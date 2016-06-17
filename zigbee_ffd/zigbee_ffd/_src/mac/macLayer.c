@@ -230,10 +230,6 @@ void macReceiveMessage (
 	mhrOffset = 2 + 1; 
 	uint16_t srcPan, srcAdd, dstPan, dstAdd;
 
-	//DEBUG
-	uint8_t destMode = fMacGetFcfDestAddMode(buffer->phyFifoMessage + prevLayerOffset);
-	//GUBED
-
 	if (fMacGetFcfDestAddMode(buffer->phyFifoMessage + prevLayerOffset) == macDestAddModeAdd16Bit)
 	{
 		mhrOffset += 4;
@@ -264,11 +260,11 @@ void macReceiveMessage (
 			tMacResponseAssociate response;
 
 			indication.DeviceAddress = srcAdd;
-			//indication.CapabilityInformation.allocateAddress
-			//indication.CapabilityInformation.deviceType
-			//indication.CapabilityInformation.powerSource
-			//indication.CapabilityInformation.receiverOnWhenIdle
-			//indication.CapabilityInformation.securityCapability
+			indication.CapabilityInformation.allocateAddress = (*(buffer->phyFifoMessage + msduOffset) >> MAC_POSITION_MSDU_COMMAND_ASSREQ_CAP_ALLADD) & 0x01;
+			indication.CapabilityInformation.deviceType = (*(buffer->phyFifoMessage + msduOffset) >> MAC_POSITION_MSDU_COMMAND_ASSREQ_CAP_DTYPE) & 0x01;
+			indication.CapabilityInformation.powerSource = (*(buffer->phyFifoMessage + msduOffset) >> MAC_POSITION_MSDU_COMMAND_ASSREQ_CAP_PSRC) & 0x01;
+			indication.CapabilityInformation.receiverOnWhenIdle = (*(buffer->phyFifoMessage + msduOffset) >> MAC_POSITION_MSDU_COMMAND_ASSREQ_CAP_RXONIDLE) & 0x01;
+			indication.CapabilityInformation.securityCapability = (*(buffer->phyFifoMessage + msduOffset) >> MAC_POSITION_MSDU_COMMAND_ASSREQ_CAP_SCAP) & 0x01;
 
 			fMacApiIndicationResponse(&indication, &response, macIndicationTypeAssociate, macResponseTypeAssociate);
 

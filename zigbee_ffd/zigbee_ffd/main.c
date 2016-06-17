@@ -24,90 +24,119 @@ int main(void)
 
 	sei();
 
-	//{
-		//tNwkRequestNetworkDiscovery networkDiscoveryRequest;
-		//tNwkConfirmNetworkDiscovery networkDiscoveryConfirm;
-		//networkDiscoveryRequest.ScanChannels = (0xFFFFFFFF) & (1 << 11);
-		//networkDiscoveryRequest.ScanDuration = 100;
-//
-		//fNwkApiRequestConfirm(&networkDiscoveryRequest, &networkDiscoveryConfirm, nwkRequestNetworkDiscovery, nwkConfirmNetworkDiscovery);
-//
-		//if (networkDiscoveryConfirm.Status == nwkStartStatusSuccess)
-		//{
-			//// Join
-//
-			//tNwkRequestJoin joinRequest;
-			//tNwkConfirmJoin joinConfirm;
-			//
-			//joinRequest.CapabilityInformation.allocateAddress = System.nwk.nib.nwkCapabilityInformation.allocateAddress;
-			//joinRequest.CapabilityInformation.deviceType = System.nwk.nib.nwkCapabilityInformation.deviceType;
-			//joinRequest.CapabilityInformation.powerSource = System.nwk.nib.nwkCapabilityInformation.powerSource;
-			//joinRequest.CapabilityInformation.receiverOnWhenIdle = System.nwk.nib.nwkCapabilityInformation.receiverOnWhenIdle;
-			//joinRequest.CapabilityInformation.securityCapability = System.nwk.nib.nwkCapabilityInformation.securityCapability;
-//
-			//joinRequest.ScanChannels = (0xFFFFFFFF) & (1 << 11);
-//
-			//joinRequest.ScanDuration = 10;
-//
-			//// Search for highest LQI PAN
-			//uint8_t i, highestLqi;
-			//for (i = 0; i < networkDiscoveryConfirm.NetworkCount; i++)
-			//{	
-				//if (i == 0)
-				//{
-					//highestLqi = 0;
-				//} else {
-					//if (networkDiscoveryConfirm.networkDescriptor[i].Lqi > networkDiscoveryConfirm.networkDescriptor[highestLqi].Lqi)
-					//{
-						//highestLqi = i;
-					//}
-				//}
-			//}
-//
-			//// Join to the PAN with highest LQI
-			//joinRequest.PANId = networkDiscoveryConfirm.networkDescriptor[highestLqi].PANId;
-			//
-			//fNwkApiRequestConfirm(&joinRequest, &joinConfirm, nwkRequestJoin, nwkConfirmJoin);
-//
-			//// TODO ASSOCIATION PROCEDURE
-//
-			//tNwkRequestStartRouter startRouterRequest;
-			//tNwkConfirmStartRouter startRouterConfirm;
-//
-			//fNwkApiRequestConfirm(&startRouterRequest, &startRouterConfirm, nwkRequestStartRouter, nwkConfirmStartRouter);
-//
-		//} else if (networkDiscoveryConfirm.Status == nwkScanStatusNoBeacon)
-		//{
-			//// Create network
-//
-			//tNwkRequestNetworkFormation networkFormationRequest;
-			//tNwkConfirmNetworkFormation networkFormationConfirm;
-//
-			//networkFormationRequest.ScanChannels = (0xFFFFFFFF) & (1 << 11);
-			//networkFormationRequest.ScanDuration = 10;
-//
-			//fNwkApiRequestConfirm(&networkFormationRequest, &networkFormationConfirm, nwkRequestNetworkFormation, nwkConfirmNetworkFormation);
-		//}
-	//}
+	//DEBUG
+	DDRD &= ~(1 << 6);
+	PORTD |= (1 << 6);
+	//GUBED
 
-	uint8_t i = 0;
+	{
+		tNwkRequestNetworkDiscovery networkDiscoveryRequest;
+		tNwkConfirmNetworkDiscovery networkDiscoveryConfirm;
+		networkDiscoveryRequest.ScanChannels = (0xFFFFFFFF) & (1 << 11);
+		networkDiscoveryRequest.ScanDuration = 100;
+
+		fNwkApiRequestConfirm(&networkDiscoveryRequest, &networkDiscoveryConfirm, nwkRequestNetworkDiscovery, nwkConfirmNetworkDiscovery);
+
+		if (networkDiscoveryConfirm.Status == nwkStartStatusSuccess)
+		{
+			// Join
+
+			tNwkRequestJoin joinRequest;
+			tNwkConfirmJoin joinConfirm;
+			
+			joinRequest.CapabilityInformation.allocateAddress = System.nwk.nib.nwkCapabilityInformation.allocateAddress;
+			joinRequest.CapabilityInformation.deviceType = System.nwk.nib.nwkCapabilityInformation.deviceType;
+			joinRequest.CapabilityInformation.powerSource = System.nwk.nib.nwkCapabilityInformation.powerSource;
+			joinRequest.CapabilityInformation.receiverOnWhenIdle = System.nwk.nib.nwkCapabilityInformation.receiverOnWhenIdle;
+			joinRequest.CapabilityInformation.securityCapability = System.nwk.nib.nwkCapabilityInformation.securityCapability;
+
+			joinRequest.ScanChannels = (0xFFFFFFFF) & (1 << 11);
+
+			joinRequest.ScanDuration = 10;
+
+			// Search for highest LQI PAN
+			uint8_t i, highestLqi;
+			for (i = 0; i < networkDiscoveryConfirm.NetworkCount; i++)
+			{	
+				if (i == 0)
+				{
+					highestLqi = 0;
+				} else {
+					if (networkDiscoveryConfirm.networkDescriptor[i].Lqi > networkDiscoveryConfirm.networkDescriptor[highestLqi].Lqi)
+					{
+						highestLqi = i;
+					}
+				}
+			}
+
+			// Join to the PAN with highest LQI
+			joinRequest.PANId = networkDiscoveryConfirm.networkDescriptor[highestLqi].PANId;
+			
+			fNwkApiRequestConfirm(&joinRequest, &joinConfirm, nwkRequestJoin, nwkConfirmJoin);
+
+			// TODO ASSOCIATION PROCEDURE
+
+			tNwkRequestStartRouter startRouterRequest;
+			tNwkConfirmStartRouter startRouterConfirm;
+
+			fNwkApiRequestConfirm(&startRouterRequest, &startRouterConfirm, nwkRequestStartRouter, nwkConfirmStartRouter);
+
+			DDRG &= (1 << 2);
+
+		} else if (networkDiscoveryConfirm.Status == nwkScanStatusNoBeacon)
+		{
+			// Create network
+
+			tNwkRequestNetworkFormation networkFormationRequest;
+			tNwkConfirmNetworkFormation networkFormationConfirm;
+
+			networkFormationRequest.ScanChannels = (0xFFFFFFFF) & (1 << 11);
+			networkFormationRequest.ScanDuration = 10;
+
+			fNwkApiRequestConfirm(&networkFormationRequest, &networkFormationConfirm, nwkRequestNetworkFormation, nwkConfirmNetworkFormation);
+
+			DDRG |= (1 << 2);
+		}
+	}
+
     while (1) 
     {
 		if (fPhyFifoTakeCheck())
 		{
 			tPhyFifoMessage* pointer = fPhyFifoTake();
 			macReceiveMessage(pointer, pointer->phyFifoMessageLength, 0);
-			DDRG ^= (1 << 2);
 		}
 		
-		if (System.TimeOutMs.test == 0)
-		{
-			System.TimeOutMs.test = 1000;
-
-			fMacPrepareAssociationRequest();
-
-			DDRG ^= (1 << 2);
-		}
+		//if ((PIND & (1 << 6)) == 0 && System.TimeOutMs.test == 0)
+		//{
+			//System.TimeOutMs.test = 500;
+			//DDRG ^= (1 << 2);
+//
+			//tNwkRequestNetworkDiscovery networkDiscoveryRequest;
+			//tNwkConfirmNetworkDiscovery networkDiscoveryConfirm;
+			//networkDiscoveryRequest.ScanChannels = (0xFFFFFFFF) & (1 << 11);
+			//networkDiscoveryRequest.ScanDuration = 100;
+			//
+			//fNwkApiRequestConfirm(&networkDiscoveryRequest, &networkDiscoveryConfirm, nwkRequestNetworkDiscovery, nwkConfirmNetworkDiscovery);
+		//}
+		
+		//if (System.TimeOutMs.test == 0)
+		//{
+			//System.TimeOutMs.test = 1000;
+//
+			//tMacCapabilityInformation capInfo;
+//
+			//capInfo.allocateAddress = true;
+			//capInfo.deviceType = true;
+			//capInfo.powerSource = false;
+			//capInfo.receiverOnWhenIdle = true;
+			//capInfo.securityCapability = true;
+//
+			//fMacPrepareAssociationRequest(0x0001, 0x0001, &capInfo);
+			//fPhyTrxMessageSend(System.phy.txBuf, macAckRequestYes, System.phy.txBufLength);
+//
+			//DDRG ^= (1 << 2);
+		//}
     }
 }
 

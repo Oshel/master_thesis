@@ -59,7 +59,6 @@ typedef struct {
 	tPhy							phy;
 	tMac							mac;
 	tNwk							nwk;
-	//tAps							aps;
 
 	tTimeOutMs						TimeOutMs;
 

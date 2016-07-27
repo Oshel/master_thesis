@@ -164,10 +164,7 @@ void fMainMoveAndAttach (uint8_t * destination,
 	uint8_t lengthDestination,
 	uint8_t lengthSource)
 {
-	// Shift destination by lengthSource 
 	memmove((void *)(destination + lengthSource), (void *) destination, lengthDestination);
-
-	// Copy source to destnation
 	memcpy((void *) destination, (void *) source, lengthSource);
 }
 

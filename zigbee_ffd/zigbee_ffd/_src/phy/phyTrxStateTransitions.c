@@ -81,7 +81,11 @@ eTrxStatus fPhyTrxStatusCheck (void)
   *			
   */
 
-bool fPhyTrxStateTransition (eTrxState fromState, eTrxState toState, bool forceTrxOff, bool forcePllOn)
+bool fPhyTrxStateTransition (
+	eTrxState fromState, 
+	eTrxState toState, 
+	bool forceTrxOff, 
+	bool forcePllOn)
 {
 	switch ((uint8_t) fromState)
 	{

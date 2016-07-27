@@ -32,7 +32,10 @@ void fNwkApiRequestConfirm (
 		scanRequest.ScanDuration = requestPointer->ScanDuration;
 		scanRequest.ScanType = macScanTypeActive;
 
-		fMacApiRequestConfirm(&scanRequest, &scanConfirm, macRequestTypeScan, macConfirmTypeScan);
+		fMacApiRequestConfirm(&scanRequest,
+			&scanConfirm,
+			macRequestTypeScan,
+			macConfirmTypeScan);
 
 		confirmPointer->NetworkCount = scanConfirm.ResultListSize;
 

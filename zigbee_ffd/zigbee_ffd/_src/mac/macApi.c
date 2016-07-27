@@ -14,6 +14,22 @@
   *			
   */
 
+void fMacApiData (
+	uint16_t destinationAdd,
+	uint8_t * txBuffer,
+	uint8_t txBufferLength,
+	uint8_t * dataBuffer,
+	uint8_t dataBufferLength)
+{
+
+}
+
+uint8_t fNwkPathCostCalculate (
+	uint8_t lqi)
+{
+
+}
+
 void fMacApiRequestConfirm (
 	void * request,
 	void * confirm,
